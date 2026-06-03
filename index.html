@@ -95,36 +95,66 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
   background:linear-gradient(90deg,var(--blue),#818cf8,var(--gold),var(--red));
   transition:width 1s cubic-bezier(.4,0,.2,1)}
 
-/* Full-bleed breakout from the 560px column */
-.galaxy-wrap{
-  position:relative;
-  width:100vw;
-  left:50%;
-  transform:translateX(-50%);
-  height:clamp(360px,72vh,660px);
-  /* no aspect-ratio — explicit height for landscape immersion */
-  overflow:hidden;
-  background:var(--bg);
-  border-top:1px solid var(--line);
-  border-bottom:1px solid var(--line);
-  margin:14px 0 10px;
-  /* subtle vertical fade so canvas bleeds into page */
-}
-.galaxy-wrap::after{
-  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
-  background:
-    linear-gradient(to bottom, var(--bg) 0%, transparent 8%, transparent 92%, var(--bg) 100%),
-    linear-gradient(to right,  var(--bg) 0%, transparent 4%, transparent 96%, var(--bg) 100%);
-}
-#gcanvas{width:100%;height:100%;display:block}
+/* ── GALAXY SCREEN — full-viewport fixed backdrop ───────────── */
+#s-galaxy{
+  position:fixed;inset:0;
+  min-height:unset;padding:0;overflow:hidden;
+  flex-direction:column;justify-content:space-between;
+  background:var(--bg)} /* fallback while canvas loads */
 
-.g-legend{display:flex;gap:16px;justify-content:center;margin-bottom:6px;flex-wrap:wrap}
-.g-legend span{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
-.ldot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+/* Canvas fills full screen behind everything */
+#gcanvas{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
+#galaxy-overlay{position:absolute;inset:0;width:100%;height:100%;
+  display:block;pointer-events:none;z-index:1}
 
-.q-header{display:flex;justify-content:space-between;align-items:baseline;
-  margin:18px 0 10px}
-.q-header-title{font-size:13px;font-weight:600;color:var(--ink)}
+/* Glass card mixin */
+.glass{
+  background:rgba(8,10,15,.78);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.09);border-radius:18px}
+
+/* Back button — absolute in viewport top-left */
+#s-galaxy .back{position:absolute;top:20px;left:20px;z-index:20}
+
+/* TOP floating panel */
+.g-top{
+  position:relative;z-index:10;
+  padding:16px 20px 0;pointer-events:none}
+.g-top-card{
+  max-width:600px;margin:0 auto;
+  padding:14px 20px 16px;pointer-events:all}
+
+.g-top-card .kicker{margin-bottom:6px}
+.g-top-card h2{font-size:clamp(1.1rem,2.5vw,1.5rem);margin-bottom:12px}
+
+/* Entropy inside top card */
+.g-entropy{margin-top:4px}
+.entropy-row{display:flex;justify-content:space-between;align-items:baseline;
+  margin-bottom:4px}
+.entropy-pct{font-family:var(--display);font-size:22px;font-weight:500}
+.dot-count{font-size:11px;color:var(--faint)}
+.e-track{height:4px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.e-fill{height:100%;width:100%;border-radius:3px;
+  background:linear-gradient(90deg,var(--blue),#818cf8,var(--gold),var(--red));
+  transition:width 1s cubic-bezier(.4,0,.2,1)}
+
+/* Legend row */
+.g-legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+.g-legend span{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px}
+.ldot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+
+/* BOTTOM floating panel */
+.g-bottom{
+  position:relative;z-index:10;
+  padding:0 12px 14px;pointer-events:none}
+.g-bottom-card{
+  max-width:960px;margin:0 auto;
+  padding:12px 14px 14px;pointer-events:all}
+
+.q-header{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:10px}
+.q-header-title{font-size:12px;font-weight:600;color:var(--ink);
+  letter-spacing:.04em;text-transform:uppercase}
 /* ── 5-QUESTION DOT COUNTER ──────────────────────────────── */
 .q-dots{display:flex;gap:7px;align-items:center}
 .qd{width:9px;height:9px;border-radius:50%;
@@ -144,8 +174,9 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
   0%,100%{transform:scale(1)}
   45%    {transform:scale(1.25)}}
 
-/* ── 2-column question card grid ─────────────────────────── */
-.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+/* ── Question card grid: 4 cols on galaxy, 2 cols elsewhere ── */
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+@media(max-width:600px){.cards-grid{grid-template-columns:repeat(2,1fr)}}
 
 /* Base — invisible until JS adds .visible */
 .qcard{background:var(--panel);border:1px solid var(--line);border-radius:18px;
@@ -385,45 +416,55 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
 </section>
 
 <!-- ══════════════════════════════════════════════════
-     SCREEN 2 — GALAXY
+     SCREEN 2 — GALAXY (full-viewport backdrop)
 ══════════════════════════════════════════════════ -->
 <section class="screen" id="s-galaxy">
+
+  <!-- Full-screen galaxy canvases -->
+  <canvas id="gcanvas"></canvas>
+  <canvas id="galaxy-overlay"></canvas>
+
+  <!-- ← Back -->
   <button class="back" onclick="goBack()">← Back</button>
-  <div class="kicker">1,000 possible futures</div>
-  <h2>Ask the future one question at a time.</h2>
 
-  <div class="card" style="padding:18px 22px">
-    <div class="entropy-row">
-      <span class="entropy-pct" id="e-pct">100%</span>
-      <span class="dot-count" id="dot-count">1,000 futures · colored by warming outcome</span>
-    </div>
-    <div class="card-label" style="margin-bottom:6px">Uncertainty Remaining</div>
-    <div class="e-track"><div class="e-fill" id="e-fill"></div></div>
-  </div>
-
-  <div class="galaxy-wrap">
-    <canvas id="gcanvas"></canvas>
-    <canvas id="galaxy-overlay" style="position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:1"></canvas>
-  </div>
-
-  <div class="g-legend">
-    <span><i class="ldot" style="background:var(--blue)"></i> &lt; 2°C</span>
-    <span><i class="ldot" style="background:var(--gold)"></i> 2 – 3°C</span>
-    <span><i class="ldot" style="background:var(--red)"></i>  &gt; 3°C</span>
-  </div>
-
-  <div class="q-header">
-    <span class="q-header-title">Your questions</span>
-    <div class="q-dots" id="q-dots">
-      <span class="qd"></span><span class="qd"></span><span class="qd"></span>
-      <span class="qd"></span><span class="qd"></span>
+  <!-- TOP: title + entropy bar floating on glass -->
+  <div class="g-top">
+    <div class="g-top-card glass">
+      <div class="kicker">1,000 possible futures</div>
+      <h2>Ask the future one question at a time.</h2>
+      <div class="g-entropy">
+        <div class="entropy-row">
+          <span class="entropy-pct" id="e-pct">100%</span>
+          <span class="dot-count" id="dot-count">1,000 futures · colored by warming outcome</span>
+        </div>
+        <div class="card-label" style="margin-bottom:5px">Uncertainty Remaining</div>
+        <div class="e-track"><div class="e-fill" id="e-fill"></div></div>
+      </div>
+      <div class="g-legend">
+        <span><i class="ldot" style="background:var(--blue)"></i> &lt; 2°C</span>
+        <span><i class="ldot" style="background:var(--gold)"></i> 2 – 3°C</span>
+        <span><i class="ldot" style="background:var(--red)"></i> &gt; 3°C</span>
+      </div>
     </div>
   </div>
-  <div class="cards-grid" id="cards-grid"></div>
 
-  <button class="btn primary" id="btn-results" style="display:none" onclick="showReveal()">
-    See what you missed &nbsp;<span class="arrow">→</span>
-  </button>
+  <!-- BOTTOM: question cards floating on glass -->
+  <div class="g-bottom">
+    <div class="g-bottom-card glass">
+      <div class="q-header">
+        <span class="q-header-title">Your questions</span>
+        <div class="q-dots" id="q-dots">
+          <span class="qd"></span><span class="qd"></span><span class="qd"></span>
+          <span class="qd"></span><span class="qd"></span>
+        </div>
+      </div>
+      <div class="cards-grid" id="cards-grid"></div>
+      <button class="btn primary" id="btn-results" style="display:none" onclick="showReveal()">
+        See what you missed &nbsp;<span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
+
 </section>
 
 <!-- ══════════════════════════════════════════════════
@@ -786,17 +827,24 @@ function setupCanvas() {
   ctx = canvas.getContext('2d');
   if (resizeH) window.removeEventListener('resize', resizeH);
   resizeH = () => {
-    // Use device pixel ratio for crisp rendering
-    const dpr = window.devicePixelRatio||1;
-    const rect = canvas.parentElement.getBoundingClientRect();
-    canvas.style.width  = rect.width  + 'px';
-    canvas.style.height = rect.height + 'px';
-    canvas.width  = rect.width  * dpr;
-    canvas.height = rect.height * dpr;
+    const dpr = window.devicePixelRatio || 1;
+    const W = window.innerWidth, H = window.innerHeight;
+    // Main canvas — full viewport
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    // Overlay canvas — same dimensions
+    const oc = document.getElementById('galaxy-overlay');
+    if (oc) {
+      oc.style.width  = W + 'px';
+      oc.style.height = H + 'px';
+      oc.width  = W * dpr;
+      oc.height = H * dpr;
+    }
   };
   window.addEventListener('resize', resizeH);
-  // Wait one tick for layout to settle
-  setTimeout(resizeH, 16);
+  resizeH(); // immediate — no layout settle needed for window dimensions
 }
 
 function galaxyFrame() {
@@ -889,12 +937,6 @@ function highlightGalaxyRegion(v) {
   const oc = document.getElementById('galaxy-overlay');
   if (!oc || !pts.length || !canvas) return;
   const dpr = window.devicePixelRatio || 1;
-  // Match overlay size to main canvas
-  oc.width  = canvas.width;
-  oc.height = canvas.height;
-  oc.style.width  = canvas.style.width;
-  oc.style.height = canvas.style.height;
-
   const octx = oc.getContext('2d');
   const W = canvas.width/dpr, H = canvas.height/dpr;
 
