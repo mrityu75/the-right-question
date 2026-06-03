@@ -2,625 +2,538 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Right Question — Climate Uncertainty</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,500;9..144,0,600;9..144,1,400;9..144,1,500&family=Spline+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ── RESET & ROOT ─────────────────────────────────────────── */
-*{margin:0;padding:0;box-sizing:border-box}
+/* ── TOKENS ──────────────────────────────────────────────── */
 :root{
-  --bg:#060610;--surface:#0d0d1c;--border:rgba(255,255,255,0.07);
-  --text:#e4e4f4;--muted:#6e6e96;
-  --accent:#6366f1;--accent2:#a5b4fc;--glow:rgba(99,102,241,0.3);
-  --red:#ef4444;--yellow:#eab308;--blue:#3b82f6;--green:#22c55e;--orange:#f97316;
-  --serif:'DM Serif Display',Georgia,serif;
-  --sans:'Inter',-apple-system,sans-serif;
-  --mono:'Menlo','Courier New',monospace;
+  --bg:#080a0f; --bg2:#0d1018; --panel:#12161f; --line:rgba(255,255,255,.08);
+  --ink:#f4f6fb; --muted:#9aa3b4; --faint:#5a6273;
+  --green:#3ddc84; --green-d:#1a8f52;
+  --blue:#4aa8ff;  --blue-d:#1f6bbf;
+  --red:#ff5b6b;   --red-d:#c0394a;
+  --gold:#ffce5c;
+  --display:'Fraunces',Georgia,serif;
+  --body:'Spline Sans',system-ui,sans-serif;
 }
-html,body{width:100%;height:100%;background:var(--bg);color:var(--text);
-  overflow:hidden;font-family:var(--sans)}
 
-/* ── SCREENS ──────────────────────────────────────────────── */
-.screen{position:fixed;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;transition:opacity 0.75s ease;z-index:10}
-.screen.active{opacity:1;pointer-events:all}
-
-/* ═══════════════════════════════════════════════════════════
-   SCREEN 1 — HOOK
-═══════════════════════════════════════════════════════════ */
-#s-hook{overflow:hidden}
-#starfield{position:absolute;inset:0;z-index:0;pointer-events:none}
-.hook-wrap{position:relative;z-index:1;text-align:center;
-  max-width:700px;width:100%;padding:2rem}
-
-.hl{font-family:var(--serif);line-height:1.65;margin-bottom:0.85rem;
-  opacity:0;transform:translateY(16px);
-  transition:opacity 1s ease,transform 1s ease}
-.hl.in{opacity:1;transform:translateY(0)}
-.hl-plain  {font-size:clamp(1.05rem,2.6vw,1.45rem);color:var(--text)}
-.hl-bridge {font-size:clamp(1rem,2.3vw,1.3rem);color:var(--muted);font-style:italic}
-.hl-question{font-size:clamp(1.05rem,2.6vw,1.45rem);color:var(--text)}
-
-/* Food waste line — BIG & DRAMATIC */
-.hl-fact{
-  font-size:clamp(2rem,6vw,3.6rem);
-  color:#4ade80;letter-spacing:-0.02em;margin:0.4rem 0 1rem;
-  text-shadow:0 0 40px rgba(74,222,128,0.5),0 0 100px rgba(74,222,128,0.18);
+/* ── BASE ────────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:radial-gradient(1200px 800px at 70% -10%,#141a28 0%,var(--bg) 55%);
+  color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased;
+  overflow-x:hidden
 }
-.hl-cta{
-  font-size:clamp(1.2rem,3.2vw,1.85rem);font-weight:600;
-  color:var(--accent2);margin-top:0.3rem;letter-spacing:0.01em}
+.app{max-width:560px;margin:0 auto;min-height:100vh;position:relative;padding:0 20px}
 
-/* Begin button — pulsing glow */
-@keyframes pulse-glow{
-  0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0),0 4px 20px rgba(0,0,0,0.4)}
-  50%{box-shadow:0 0 0 12px rgba(99,102,241,0.28),0 4px 20px rgba(0,0,0,0.4)}}
-.btn-begin{margin-top:2.4rem;padding:0.9rem 3.2rem;
-  background:var(--accent);color:#fff;border:none;border-radius:7px;
-  font-family:var(--sans);font-size:1.05rem;font-weight:500;
-  letter-spacing:0.06em;cursor:pointer;
-  opacity:0;transform:translateY(10px);
-  transition:opacity 0.8s ease,transform 0.8s ease,background 0.2s;
-  display:inline-block}
-.btn-begin.in{opacity:1;transform:translateY(0);animation:pulse-glow 2.6s ease-in-out infinite}
-.btn-begin:hover{background:#7c3aed}
+/* ── SCREENS ─────────────────────────────────────────────── */
+.screen{min-height:100vh;display:none;flex-direction:column;justify-content:center;
+  padding:56px 0 48px;animation:rise .65s cubic-bezier(.2,.8,.2,1)}
+.screen.active{display:flex}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 
-/* ═══════════════════════════════════════════════════════════
-   SCREEN 2 — GALAXY
-═══════════════════════════════════════════════════════════ */
-#s-galaxy{justify-content:flex-start;overflow:hidden}
-#gcanvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
-.gUI{position:relative;z-index:10;width:100%;height:100%;
-  display:flex;flex-direction:column;pointer-events:none}
+/* ── TYPOGRAPHY ──────────────────────────────────────────── */
+.kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);
+  font-weight:600;margin-bottom:16px;font-family:var(--body)}
+h1{font-family:var(--display);font-weight:500;font-size:40px;line-height:1.08;
+  letter-spacing:-.01em;margin-bottom:18px}
+h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;margin-bottom:14px}
+.lede{font-size:16px;line-height:1.65;color:var(--muted);max-width:48ch}
+.tagline{font-family:var(--display);font-style:italic;font-size:22px;color:var(--ink);
+  line-height:1.4;margin:6px 0 26px}
+.reveal-text{font-family:var(--display);font-size:26px;line-height:1.3;font-weight:500;
+  margin:20px 0;letter-spacing:-.01em}
+.reveal-text em{color:var(--gold);font-style:italic}
 
-/* entropy bar */
-.e-bar-wrap{padding:0.9rem 1.5rem 0.4rem}
-.e-labels{font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;
-  color:var(--muted);display:flex;justify-content:space-between;margin-bottom:0.35rem}
-.e-labels b{color:var(--text);font-weight:500;font-size:0.72rem}
-.e-track{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden}
-.e-fill{height:100%;width:100%;border-radius:2px;
-  background:linear-gradient(90deg,#3b82f6,#6366f1,#f97316,#ef4444);
+/* ── CARDS ───────────────────────────────────────────────── */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:22px;
+  padding:26px;margin-bottom:14px}
+.card-label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--faint);font-weight:600;margin-bottom:14px}
+
+/* ── BUTTONS ─────────────────────────────────────────────── */
+.btn{appearance:none;border:1px solid var(--line);background:var(--panel);
+  color:var(--ink);font-family:var(--body);font-size:15px;font-weight:500;
+  padding:15px 20px;border-radius:16px;cursor:pointer;transition:.18s;
+  width:100%;text-align:left;display:flex;align-items:center;
+  justify-content:space-between;gap:12px}
+.btn:hover{border-color:rgba(255,255,255,.22);transform:translateY(-1px);background:#161b26}
+.btn:active{transform:translateY(0) scale(.99)}
+.btn.primary{background:var(--ink);color:#0a0c11;border-color:var(--ink);
+  justify-content:center;font-size:16px;font-weight:600}
+.btn.primary:hover{background:#fff}
+.btn.primary:disabled{opacity:.4;cursor:default;transform:none}
+.arrow{font-size:17px;opacity:.5}
+.btn-stack{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+
+/* ── BACK BUTTON ─────────────────────────────────────────── */
+.back{position:absolute;top:22px;left:20px;background:none;border:none;
+  color:var(--faint);font-size:14px;cursor:pointer;font-family:var(--body);
+  padding:4px 0;transition:color .18s;z-index:10}
+.back:hover{color:var(--ink)}
+
+/* ── SCREEN 1: HOOK ──────────────────────────────────────── */
+.hook-facts{margin:22px 0 28px;display:flex;flex-direction:column;gap:8px}
+.fact-line{font-family:var(--display);font-size:18px;color:var(--muted);
+  opacity:0;transform:translateY(10px);transition:opacity .8s ease,transform .8s ease}
+.fact-line.in{opacity:1;transform:none}
+.fact-line.fact-big{font-size:32px;color:var(--green);font-weight:500;
+  text-shadow:0 0 40px rgba(61,220,132,.3);margin:6px 0 2px}
+.fact-line.fact-accent{color:var(--ink);font-style:italic}
+
+/* ── SCREEN 2: GALAXY ────────────────────────────────────── */
+.entropy-row{display:flex;justify-content:space-between;align-items:baseline;
+  margin-bottom:10px}
+.entropy-pct{font-family:var(--display);font-size:26px;font-weight:500}
+.dot-count{font-size:12px;color:var(--faint)}
+.e-track{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.e-fill{height:100%;width:100%;border-radius:3px;
+  background:linear-gradient(90deg,var(--blue),#818cf8,var(--gold),var(--red));
   transition:width 1s cubic-bezier(.4,0,.2,1)}
 
-.g-caption{text-align:center;padding:0.15rem 1rem}
-.g-caption h2{font-size:clamp(0.7rem,1.6vw,0.88rem);color:var(--muted);
-  font-family:var(--sans);font-weight:400;letter-spacing:0.07em}
-#dot-count{font-size:0.6rem;color:rgba(255,255,255,0.2);margin-top:0.12rem}
+.galaxy-wrap{position:relative;width:100%;aspect-ratio:1;
+  max-height:62vw;border-radius:20px;overflow:hidden;
+  background:var(--bg);border:1px solid var(--line);margin:14px 0 10px}
+#gcanvas{width:100%;height:100%;display:block}
 
-.legend{position:absolute;top:4.2rem;left:1.2rem;z-index:20;
-  display:flex;flex-direction:column;gap:0.3rem;opacity:0.6;pointer-events:none}
-.li{display:flex;align-items:center;gap:0.4rem;
-  font-size:0.6rem;color:var(--muted);letter-spacing:0.05em;font-family:var(--sans)}
-.ld{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.g-legend{display:flex;gap:16px;justify-content:center;margin-bottom:6px;flex-wrap:wrap}
+.g-legend span{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.ldot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
 
-/* cards area */
-.cards-area{position:absolute;bottom:0;left:0;right:0;z-index:20;
-  background:linear-gradient(to top,rgba(6,6,16,0.99) 60%,transparent);
-  padding:0.5rem 1rem 0.8rem;pointer-events:all}
+.q-header{display:flex;justify-content:space-between;align-items:baseline;
+  margin:18px 0 10px}
+.q-header-title{font-size:13px;font-weight:600;color:var(--ink)}
+.q-remaining{font-size:12px;color:var(--faint)}
+.q-remaining strong{color:var(--gold);font-size:14px}
 
-.cards-header{display:flex;justify-content:space-between;align-items:baseline;
-  margin-bottom:0.5rem;padding:0 0.1rem}
-.cards-headline{font-family:var(--serif);font-size:clamp(0.8rem,2vw,1rem);
-  color:var(--text);letter-spacing:0.01em}
-.q-remaining{font-size:0.68rem;color:var(--muted);white-space:nowrap}
-.q-remaining strong{color:var(--accent2);font-size:0.9rem;font-weight:600}
-
-.cards-scroll{display:flex;gap:0.6rem;overflow-x:auto;padding-bottom:0.3rem;
-  scrollbar-width:thin;scrollbar-color:rgba(99,102,241,0.4) transparent}
-.cards-scroll::-webkit-scrollbar{height:3px}
-.cards-scroll::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.4);border-radius:2px}
-
-/* question cards — redesigned */
-.qcard{flex-shrink:0;width:160px;background:rgba(13,13,28,0.95);
-  border:1px solid var(--border);border-radius:10px;padding:0.8rem 0.75rem 0.7rem;
-  cursor:pointer;position:relative;overflow:hidden;
-  transition:transform 0.22s ease,border-color 0.22s ease,box-shadow 0.22s ease,opacity 0.3s}
-.qcard:hover{
-  transform:translateY(-5px) scale(1.03);
-  border-color:var(--cc,var(--accent));
-  box-shadow:0 0 22px var(--cc-g,rgba(99,102,241,0.35)),0 8px 24px rgba(0,0,0,0.5)}
-.qcard.done{opacity:0.35;cursor:default;transform:none !important;
-  border-color:var(--cc,var(--accent));pointer-events:none}
-.card-qmark{font-size:1.9rem;font-weight:700;line-height:1;margin-bottom:0.4rem;
-  color:var(--cc,var(--accent));
-  text-shadow:0 0 14px var(--cc-g,rgba(99,102,241,0.5));
-  transition:text-shadow 0.2s}
-.qcard:hover .card-qmark{text-shadow:0 0 28px var(--cc-g,rgba(99,102,241,0.8))}
-.qcard.done .card-qmark{content:'✓'}
-.cname{font-size:0.68rem;font-weight:600;color:var(--text);
-  margin-bottom:0.3rem;line-height:1.3;font-family:var(--sans)}
-.cq{font-size:0.6rem;color:var(--muted);line-height:1.4;font-family:var(--sans)}
-.ccheck{position:absolute;top:0.5rem;right:0.55rem;font-size:0.75rem;
-  color:var(--green);opacity:0;transition:opacity 0.3s}
+/* 2-column question card grid */
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.qcard{background:var(--panel);border:1px solid var(--line);border-radius:18px;
+  padding:14px 16px;cursor:pointer;position:relative;overflow:hidden;
+  transition:border-color .2s,transform .18s,opacity .3s,box-shadow .2s}
+.qcard:hover{border-color:var(--cc,rgba(255,255,255,.2));
+  transform:translateY(-2px);
+  box-shadow:0 0 18px var(--cc-g,rgba(255,255,255,.08))}
+.qcard.done{opacity:.32;pointer-events:none;transform:none!important}
+.qmark{font-size:20px;font-weight:700;color:var(--cc,var(--gold));
+  line-height:1;margin-bottom:6px;
+  text-shadow:0 0 12px var(--cc-g,rgba(255,206,92,.4));font-family:var(--display)}
+.cname{font-size:11px;font-weight:600;color:var(--ink);
+  margin-bottom:4px;line-height:1.2;letter-spacing:.01em}
+.cq{font-size:11px;color:var(--muted);line-height:1.4}
+.ccheck{position:absolute;top:10px;right:12px;font-size:11px;
+  color:var(--green);opacity:0;transition:opacity .3s}
 .qcard.done .ccheck{opacity:1}
 
-.btn-results{display:block;margin:0.6rem auto 0;padding:0.7rem 2rem;
-  background:var(--accent);color:#fff;border:none;border-radius:6px;
-  font-family:var(--sans);font-size:0.88rem;font-weight:500;letter-spacing:0.06em;
-  cursor:pointer;opacity:0;transform:translateY(5px);
-  transition:opacity 0.5s ease,transform 0.5s ease,background 0.2s;pointer-events:none}
-.btn-results.show{opacity:1;transform:translateY(0);pointer-events:all}
-.btn-results:hover{background:#7c3aed}
-
-/* ═══════════════════════════════════════════════════════════
-   COLLAPSE OVERLAY — fullscreen dramatic moment
-═══════════════════════════════════════════════════════════ */
+/* ── COLLAPSE OVERLAY ────────────────────────────────────── */
 #s-collapse{
-  position:fixed;inset:0;z-index:100;
-  background:#000;
-  display:flex;align-items:flex-start;justify-content:center;
-  overflow-y:auto;-webkit-overflow-scrolling:touch;
-  opacity:0;pointer-events:none;transition:opacity 0.5s ease}
+  position:fixed;inset:0;z-index:200;
+  background:var(--bg);overflow-y:auto;
+  opacity:0;pointer-events:none;transition:opacity .35s}
 #s-collapse.show{opacity:1;pointer-events:all}
+.col-back{position:fixed;top:22px;left:20px;background:none;border:none;
+  color:var(--faint);font-size:14px;cursor:pointer;font-family:var(--body);
+  transition:color .18s,opacity .2s;z-index:210;padding:4px 0}
+.col-back:hover{color:var(--ink)}
+.col-back.hidden{opacity:0;pointer-events:none}
+.col-inner{max-width:560px;width:100%;padding:80px 20px 56px;margin:0 auto}
 
-.col-inner{text-align:center;max-width:580px;width:92%;
-  padding:clamp(1.5rem,5vh,3rem) 0 2rem;margin:auto}
-.col-phase{opacity:0;transform:translateY(18px);
-  transition:opacity 0.7s ease,transform 0.7s ease}
-.col-phase.in{opacity:1;transform:translateY(0)}
-
-.col-var-label{font-family:var(--sans);font-size:0.65rem;letter-spacing:0.2em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem}
-.col-question{font-family:var(--serif);font-style:italic;
-  font-size:clamp(1.2rem,3.5vw,1.8rem);color:var(--text);
-  line-height:1.5;margin-bottom:2rem}
-.col-the-answer{font-size:0.6rem;letter-spacing:0.22em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:0.5rem;font-family:var(--sans)}
-.col-ans-val{font-family:var(--serif);
-  font-size:clamp(1.4rem,4vw,2.2rem);
-  color:var(--cc-col,var(--accent2));line-height:1.3;margin-bottom:0.6rem}
-.col-ans-ctx{font-size:0.8rem;color:rgba(255,255,255,0.45);line-height:1.6;
-  max-width:480px;margin:0 auto 2rem;font-family:var(--sans)}
-.col-stat-num{font-family:var(--serif);
-  font-size:clamp(4.5rem,14vw,8rem);line-height:0.9;
-  color:#fff;letter-spacing:-0.03em}
-.col-stat-sub{font-size:clamp(0.9rem,2.5vw,1.15rem);color:var(--muted);
-  letter-spacing:0.12em;text-transform:uppercase;
-  margin-top:0.5rem;font-family:var(--sans)}
-.col-btn{margin-top:2.5rem}
-.btn-col-cont{padding:0.7rem 2.2rem;background:transparent;
-  border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);
-  border-radius:6px;font-family:var(--sans);font-size:0.85rem;
-  cursor:pointer;transition:border-color 0.2s,color 0.2s}
-.btn-col-cont:hover{border-color:rgba(255,255,255,0.5);color:#fff}
-
-/* back link */
-.col-back-btn{position:fixed;top:1.1rem;left:1.4rem;z-index:102;
-  background:transparent;border:none;
-  color:rgba(255,255,255,0.28);font-family:var(--sans);
-  font-size:0.75rem;letter-spacing:0.04em;
-  cursor:pointer;padding:0.3rem 0;transition:color 0.2s}
-.col-back-btn:hover{color:rgba(255,255,255,0.65)}
-.col-back-btn.hidden{opacity:0;pointer-events:none;transition:opacity 0.2s}
-
-/* choice buttons */
-.col-choices-prompt{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;
-  color:var(--muted);margin-bottom:0.75rem;font-family:var(--sans)}
-.choices-grid{display:flex;flex-direction:column;gap:0.55rem;width:100%}
-.choice-btn{padding:0.85rem 1.2rem;background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.1);border-radius:9px;
-  color:rgba(255,255,255,0.8);font-family:var(--sans);
-  font-size:clamp(0.78rem,2.2vw,0.9rem);text-align:left;cursor:pointer;
-  transition:background 0.14s,border-color 0.14s,transform 0.12s,
-    opacity 0.45s,color 0.3s;line-height:1.4;width:100%}
-.choice-btn:hover:not(:disabled){
-  background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.22);
-  transform:translateX(5px)}
-.choice-btn:disabled{cursor:default}
+/* collapse phases */
+.col-phase{opacity:0;transform:translateY(14px);
+  transition:opacity .65s ease,transform .65s ease}
+.col-phase.in{opacity:1;transform:none}
+.col-q-text{font-family:var(--display);font-style:italic;
+  font-size:clamp(1.3rem,4vw,1.85rem);line-height:1.45;color:var(--ink);
+  margin:8px 0 28px}
+.col-choices-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--faint);font-weight:600;margin-bottom:12px}
+.col-choice-btn{appearance:none;border:1px solid var(--line);background:var(--panel);
+  color:var(--ink);font-family:var(--body);font-size:15px;font-weight:400;
+  padding:15px 18px;border-radius:14px;cursor:pointer;transition:.18s;
+  width:100%;text-align:left;margin-bottom:8px;display:block;line-height:1.4}
+.col-choice-btn:hover:not(:disabled){
+  border-color:rgba(255,255,255,.22);transform:translateY(-1px);background:#161b26}
+.col-choice-btn:disabled{cursor:default;transform:none!important}
 /* post-pick states */
-.choice-btn.st-right{border-color:rgba(74,222,128,0.6);
-  background:rgba(74,222,128,0.13);color:#4ade80;font-weight:600}
-.choice-btn.st-wrong{border-color:rgba(248,113,113,0.5);
-  background:rgba(248,113,113,0.09);color:#f87171}
-.choice-btn.st-correct{border-color:rgba(74,222,128,0.45);
-  background:rgba(74,222,128,0.08);color:#86efac}
-.choice-btn.st-dim{opacity:0.16;border-color:rgba(255,255,255,0.04);
-  color:rgba(255,255,255,0.25)}
-/* verdict */
-.col-verdict-text{font-family:var(--serif);
-  font-size:clamp(1.9rem,6vw,2.9rem);line-height:1;margin-bottom:0.2rem}
-.verdict-right{color:#4ade80;text-shadow:0 0 35px rgba(74,222,128,0.55)}
-.verdict-wrong{color:#f87171;text-shadow:0 0 35px rgba(248,113,113,0.45)}
+.col-choice-btn.st-right{border-color:var(--green);
+  background:rgba(61,220,132,.1);color:var(--green);font-weight:600}
+.col-choice-btn.st-correct{border-color:rgba(61,220,132,.35);
+  background:rgba(61,220,132,.06);color:rgba(61,220,132,.8)}
+.col-choice-btn.st-wrong{border-color:rgba(255,91,107,.45);
+  background:rgba(255,91,107,.08);color:var(--red)}
+.col-choice-btn.st-dim{opacity:.15;border-color:rgba(255,255,255,.04)}
 
-/* ═══════════════════════════════════════════════════════════
-   SCREEN 4 — REVEAL
-═══════════════════════════════════════════════════════════ */
-#s-reveal{overflow-y:auto;overflow-x:hidden;justify-content:flex-start;
-  padding:2.5rem 1rem 3rem;-webkit-overflow-scrolling:touch;background:var(--bg)}
-.rev-inner{max-width:720px;margin:0 auto;width:100%}
+/* verdict card */
+.col-verdict-card{text-align:center;padding:22px;border-radius:18px;margin:18px 0 0;
+  border:1px solid rgba(255,206,92,.2);
+  background:linear-gradient(180deg,rgba(255,206,92,.07),transparent)}
+.col-verdict-card.wrong-verdict{border-color:rgba(255,91,107,.2);
+  background:linear-gradient(180deg,rgba(255,91,107,.07),transparent)}
+.col-verdict-big{font-family:var(--display);font-size:clamp(2rem,7vw,3rem);
+  font-weight:500;line-height:1}
+.col-verdict-big.right{color:var(--green)}
+.col-verdict-big.wrong{color:var(--red)}
 
-/* Score — giant, appears first */
-.rev-score-wrap{text-align:center;margin-bottom:2.5rem;
-  opacity:0;transition:opacity 0.6s ease}
-.rev-score-wrap.in{opacity:1}
-.rev-score{font-family:var(--serif);font-size:clamp(5rem,16vw,9rem);
-  font-weight:normal;line-height:0.9;
-  background:linear-gradient(135deg,var(--accent2),#60a5fa);
+/* answer reveal */
+.col-answer-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--faint);font-weight:600;margin-bottom:8px;margin-top:22px}
+.col-answer-val{font-family:var(--display);font-size:clamp(1.3rem,4vw,1.75rem);
+  line-height:1.3;margin-bottom:6px;font-weight:500}
+.col-answer-ctx{font-size:14px;line-height:1.6;color:var(--muted);max-width:44ch}
+
+/* collapse stat */
+.col-stat-wrap{text-align:center;margin:30px 0 6px;padding:26px;
+  border-radius:20px;border:1px solid var(--line);background:var(--panel)}
+.col-stat-num{font-family:var(--display);font-size:clamp(4rem,14vw,7rem);
+  line-height:.9;font-weight:500;letter-spacing:-.03em}
+.col-stat-sub{font-size:13px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin-top:10px}
+
+/* ── SCREEN 3: REVEAL ────────────────────────────────────── */
+.score-display{text-align:center;margin-bottom:24px}
+.score-big{font-family:var(--display);font-size:clamp(4.5rem,16vw,8rem);
+  line-height:.9;font-weight:500;letter-spacing:-.02em;
+  background:linear-gradient(135deg,var(--blue),#a5b4fc);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.rev-score-sub{font-size:0.68rem;letter-spacing:0.18em;text-transform:uppercase;
-  color:var(--muted);margin-top:0.5rem;font-family:var(--sans)}
-.rev-headline{font-family:var(--serif);font-style:italic;
-  font-size:clamp(1rem,2.6vw,1.3rem);color:rgba(255,255,255,0.7);
-  margin-top:1rem;line-height:1.6}
+.score-sub{font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--faint);margin-top:8px}
+.score-headline{font-family:var(--display);font-style:italic;
+  font-size:clamp(1rem,2.8vw,1.2rem);color:rgba(255,255,255,.65);
+  margin-top:10px;line-height:1.5}
 
-/* table fades */
-.rev-table-wrap{opacity:0;transition:opacity 0.5s ease}
-.rev-table-wrap.in{opacity:1}
-.rank-table{margin:0.3rem 0 1rem}
-.rrow{display:flex;align-items:flex-start;gap:0.7rem;padding:0.8rem 0.85rem;
-  border-radius:10px;margin-bottom:0.4rem;
-  background:rgba(255,255,255,0.02);border:1px solid var(--border);
-  opacity:0;transform:translateX(-16px);
-  transition:opacity 0.45s ease,transform 0.45s ease}
-.rrow.in{opacity:1;transform:translateX(0)}
-.rrow.picked{border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.04)}
-.rrow.missed{border-color:rgba(239,68,68,0.25);background:rgba(239,68,68,0.04)}
-.rnum{font-family:var(--serif);font-size:1.1rem;color:var(--muted);
-  width:1.5rem;text-align:center;flex-shrink:0;padding-top:2px}
-.rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+/* rank rows inside .card */
+.rrow{display:flex;align-items:flex-start;gap:10px;
+  padding:12px 0;border-bottom:1px solid var(--line)}
+.rrow:last-child{border-bottom:none}
+.rrow.picked{background:rgba(61,220,132,.04);margin:0 -8px;padding:12px 8px;
+  border-radius:10px;border-bottom-color:transparent}
+.rrow.missed{background:rgba(255,91,107,.04);margin:0 -8px;padding:12px 8px;
+  border-radius:10px;border-bottom-color:transparent}
+.rnum{font-family:var(--display);font-size:15px;color:var(--faint);
+  width:22px;text-align:center;flex-shrink:0;padding-top:1px}
+.rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
 .rinfo{flex:1;min-width:0}
-.rname{font-size:0.82rem;font-weight:600;color:var(--text);font-family:var(--sans)}
-.rsurprise{font-size:0.67rem;color:var(--muted);margin-top:0.2rem;
-  line-height:1.45;font-family:var(--sans)}
-.rbar-wrap{width:72px;flex-shrink:0;padding-top:5px}
-.rbar-track{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden}
-.rbar-fill{height:100%;border-radius:2px;width:0;transition:width 1.2s ease}
-.rbadge{font-size:0.58rem;padding:0.14rem 0.4rem;border-radius:3px;
-  letter-spacing:0.05em;flex-shrink:0;white-space:nowrap;
-  margin-top:2px;font-family:var(--sans)}
-.rbadge-yes{background:rgba(34,197,94,0.12);color:#4ade80;
-  border:1px solid rgba(34,197,94,0.25)}
-.rbadge-miss{background:rgba(239,68,68,0.1);color:#f87171;
-  border:1px solid rgba(239,68,68,0.2)}
+.rname{font-size:14px;font-weight:600;color:var(--ink)}
+.rsurp{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.45}
+.rbar-wrap{width:60px;flex-shrink:0;padding-top:4px}
+.rbar-track{height:4px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden}
+.rbar-fill{height:100%;border-radius:3px;width:0;transition:width 1.2s ease}
+.rbadge{font-size:10px;padding:2px 7px;border-radius:99px;
+  white-space:nowrap;flex-shrink:0;font-weight:600;margin-top:1px}
+.rbadge-yes{background:rgba(61,220,132,.12);color:var(--green);
+  border:1px solid rgba(61,220,132,.22)}
+.rbadge-miss{background:rgba(255,91,107,.1);color:var(--red);
+  border:1px solid rgba(255,91,107,.2)}
 
-/* G7 callout — BIG BOLD BOX */
-.callout{margin:1.8rem 0;padding:1.6rem 1.8rem;
-  background:linear-gradient(135deg,rgba(239,68,68,0.1),rgba(239,68,68,0.04));
-  border:1.5px solid rgba(239,68,68,0.3);border-radius:14px;
-  text-align:center;
-  opacity:0;transition:opacity 0.5s ease 0.1s}
-.callout.in{opacity:1}
-.callout-text{font-family:var(--serif);
-  font-size:clamp(1.05rem,3vw,1.45rem);
-  color:var(--text);line-height:1.55}
-.callout-text .highlight{color:#f87171}
-.callout-text .good{color:#4ade80}
+/* callout */
+.callout{border-radius:18px;padding:22px;margin:16px 0;text-align:center;
+  border:1px solid rgba(255,91,107,.25);
+  background:linear-gradient(135deg,rgba(255,91,107,.08),rgba(255,91,107,.03))}
+.callout.good{border-color:rgba(61,220,132,.25);
+  background:linear-gradient(135deg,rgba(61,220,132,.08),rgba(61,220,132,.03))}
+.callout-text{font-family:var(--display);font-size:clamp(1rem,3vw,1.3rem);
+  line-height:1.5;color:var(--ink)}
+.callout-text .hl{color:var(--red);font-style:italic}
+.callout-text .hl-g{color:var(--green);font-style:italic}
 
-.btn-truth{display:block;margin:0.8rem auto;padding:0.8rem 2.5rem;
-  background:transparent;border:1px solid var(--accent);color:var(--accent2);
-  border-radius:6px;font-family:var(--sans);font-size:0.9rem;font-weight:500;
-  letter-spacing:0.06em;cursor:pointer;
-  transition:background 0.2s,box-shadow 0.2s}
-.btn-truth:hover{background:var(--glow);box-shadow:0 0 24px var(--glow)}
-
-/* ═══════════════════════════════════════════════════════════
-   SCREEN 5 — BIGGER TRUTH
-═══════════════════════════════════════════════════════════ */
-#s-truth{padding:2rem;overflow-y:auto}
-.truth-wrap{text-align:center;max-width:580px;width:100%}
-.tl{font-family:var(--serif);font-size:clamp(1rem,2.8vw,1.35rem);
-  line-height:1.75;margin-bottom:1.3rem;
+/* ── SCREEN 4: TRUTH ──────────────────────────────────────── */
+.truth-lines{display:flex;flex-direction:column;gap:0}
+.tline{font-family:var(--display);font-size:clamp(1.05rem,3vw,1.3rem);
+  line-height:1.65;color:var(--ink);margin-bottom:20px;
   opacity:0;transform:translateY(10px);
-  transition:opacity 1s ease,transform 1s ease;color:var(--text)}
-.tl.in{opacity:1;transform:translateY(0)}
-.tl em{color:var(--accent2);font-style:normal}
-.tl strong{color:#4ade80;font-style:normal}
-.truth-footer{margin-top:2rem;display:flex;flex-direction:column;gap:0.8rem;
-  align-items:center;opacity:0;transition:opacity 1s ease}
+  transition:opacity .9s ease,transform .9s ease}
+.tline.in{opacity:1;transform:none}
+.tline em{color:var(--gold);font-style:italic}
+.tline strong{color:var(--green)}
+.truth-footer{opacity:0;transition:opacity .9s ease;
+  display:flex;flex-direction:column;gap:10px;margin-top:8px}
 .truth-footer.in{opacity:1}
-.btn-method{padding:0.6rem 1.6rem;background:transparent;
-  border:1px solid rgba(255,255,255,0.12);color:var(--muted);
-  border-radius:6px;font-family:var(--sans);font-size:0.8rem;
-  letter-spacing:0.08em;cursor:pointer;transition:color 0.2s,border-color 0.2s}
-.btn-method:hover{color:var(--text);border-color:rgba(255,255,255,0.28)}
-.btn-play-again-sm{padding:0.55rem 1.4rem;background:transparent;
-  border:1px solid rgba(99,102,241,0.35);color:var(--muted);
-  border-radius:6px;font-family:var(--sans);font-size:0.78rem;
-  cursor:pointer;transition:color 0.2s,border-color 0.2s}
-.btn-play-again-sm:hover{color:var(--accent2);border-color:var(--accent)}
+.btn-ghost{appearance:none;background:none;border:1px solid var(--line);
+  color:var(--faint);font-family:var(--body);font-size:14px;
+  padding:12px 18px;border-radius:14px;cursor:pointer;
+  width:100%;text-align:center;transition:.18s}
+.btn-ghost:hover{border-color:rgba(255,255,255,.2);color:var(--ink)}
 
-/* ═══════════════════════════════════════════════════════════
-   SCREEN 6 — METHODOLOGY
-═══════════════════════════════════════════════════════════ */
-#s-method{overflow-y:auto;overflow-x:hidden;justify-content:flex-start;
-  padding:2.5rem 1rem 3rem;background:var(--bg)}
-.method-inner{max-width:680px;margin:0 auto;width:100%}
-.method-header{display:flex;justify-content:space-between;
-  align-items:center;margin-bottom:2rem;flex-wrap:wrap;gap:0.6rem}
-.method-title{font-family:var(--serif);font-size:clamp(1.6rem,4vw,2.4rem);color:var(--text)}
-.btn-play-again{padding:0.6rem 1.6rem;background:var(--accent);color:#fff;
-  border:none;border-radius:6px;font-family:var(--sans);font-size:0.82rem;
-  font-weight:500;letter-spacing:0.06em;cursor:pointer;transition:background 0.2s}
-.btn-play-again:hover{background:#7c3aed}
+/* ── SCREEN 5: METHODOLOGY ───────────────────────────────── */
+.method-header{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:24px;flex-wrap:wrap;gap:10px}
+.concept-row{display:flex;justify-content:space-between;align-items:flex-start;
+  gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+.concept-row:last-child{border-bottom:none}
+.cn{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.cd{font-size:12px;color:var(--muted)}
+.ct{flex-shrink:0;font-size:12px;font-weight:500;color:var(--gold);
+  font-family:var(--display);font-style:italic}
+.formula-row{font-family:'Menlo','Courier New',monospace;font-size:12px;
+  color:var(--blue);background:rgba(74,168,255,.07);border:1px solid rgba(74,168,255,.12);
+  border-radius:8px;padding:8px 12px;margin-top:6px;overflow-x:auto;white-space:nowrap}
+.source-row{display:flex;align-items:flex-start;gap:10px;
+  padding:12px 0;border-bottom:1px solid var(--line)}
+.source-row:last-child{border-bottom:none}
+.src-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.src-name{font-size:13px;font-weight:500;color:var(--ink)}
+.src-detail{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.45}
+.src-link{font-size:11px;color:var(--blue);text-decoration:none;
+  border-bottom:1px solid rgba(74,168,255,.2);transition:color .18s;margin-top:3px;display:inline-block}
+.src-link:hover{color:var(--ink)}
+.muted-note{font-size:13px;color:var(--faint);line-height:1.6;margin-top:8px;
+  border-top:1px solid var(--line);padding-top:16px}
 
-.method-section{margin-bottom:2rem}
-.method-section-title{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;
-  color:var(--accent2);margin-bottom:0.8rem;font-family:var(--sans)}
-
-/* concept cards */
-.concept-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.8rem}
-.concept-card{background:rgba(255,255,255,0.025);border:1px solid var(--border);
-  border-radius:10px;padding:1.1rem 1.2rem}
-.concept-card:hover{border-color:rgba(99,102,241,0.25);background:rgba(99,102,241,0.04)}
-.cc-num{font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;
-  color:var(--accent2);margin-bottom:0.35rem;font-family:var(--sans)}
-.cc-title{font-family:var(--serif);font-size:1.1rem;color:var(--text);margin-bottom:0.4rem}
-.cc-desc{font-size:0.75rem;color:var(--muted);line-height:1.55;
-  margin-bottom:0.7rem;font-family:var(--sans)}
-.formula-box{background:rgba(6,6,22,0.8);border:1px solid rgba(99,102,241,0.18);
-  border-radius:6px;padding:0.55rem 0.75rem;font-family:var(--mono);
-  font-size:0.75rem;color:var(--accent2);
-  overflow-x:auto;white-space:nowrap;letter-spacing:0.02em}
-.formula-box sub,.formula-box sup{font-size:0.68em}
-
-/* data sources */
-.source-list{display:flex;flex-direction:column;gap:0.55rem}
-.source-item{display:flex;align-items:flex-start;gap:0.6rem;
-  padding:0.7rem 0.9rem;background:rgba(255,255,255,0.02);
-  border:1px solid var(--border);border-radius:8px;font-family:var(--sans)}
-.source-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
-.source-text{flex:1;min-width:0}
-.source-name{font-size:0.78rem;font-weight:500;color:var(--text)}
-.source-detail{font-size:0.68rem;color:var(--muted);margin-top:0.15rem;line-height:1.4}
-.source-link{display:inline-block;margin-top:0.2rem;font-size:0.65rem;
-  color:var(--accent2);text-decoration:none;
-  border-bottom:1px solid rgba(99,102,241,0.2);transition:color 0.2s}
-.source-link:hover{color:#fff}
-
-/* ── RESPONSIVE ───────────────────────────────────────────── */
-@media(max-width:520px){
-  .qcard{width:145px}
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media(max-width:420px){
+  h1{font-size:32px}
+  .score-big{font-size:clamp(3.5rem,18vw,7rem)}
   .rbar-wrap{display:none}
-  .rev-inner{padding:0}
-  .method-inner{padding:0}
-  .concept-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
+<div class="app">
 
-<!-- ═══════════════════════════════════════════════════════
+<!-- ══════════════════════════════════════════════════
      SCREEN 1 — HOOK
-═══════════════════════════════════════════════════════ -->
-<div class="screen active" id="s-hook">
-  <canvas id="starfield"></canvas>
-  <div class="hook-wrap">
-    <div class="hl hl-plain"    id="hl0">Scientists ranked every climate solution by impact.</div>
-    <div class="hl hl-plain"    id="hl1">The #1 solution isn't solar. It isn't EVs.</div>
-    <div class="hl hl-fact"     id="hl2">It's reducing food waste.</div>
-    <div class="hl hl-bridge"   id="hl3">But that's about actions. This is about something deeper.</div>
-    <div class="hl hl-question" id="hl4">Which climate unknowns actually determine the future?</div>
-    <div class="hl hl-cta"      id="hl5">You have 5 questions. Use them wisely.</div>
-    <button class="btn-begin" id="btn-begin" onclick="startGalaxy()">Begin</button>
+══════════════════════════════════════════════════ -->
+<section class="screen active" id="s-hook">
+  <div class="kicker">An information theory experience</div>
+  <h1>The Right Question</h1>
+  <p class="tagline">Which climate unknowns actually determine the future?</p>
+  <p class="lede">Scientists ranked every climate solution by impact. The #1 solution isn't solar. It isn't EVs.</p>
+  <div class="hook-facts">
+    <div class="fact-line fact-big"   id="fl0">It's reducing food waste.</div>
+    <div class="fact-line fact-accent" id="fl1">But that's about actions. This is about something deeper.</div>
+    <div class="fact-line"             id="fl2">You have 5 questions to ask about the future. Use them wisely.</div>
   </div>
-</div>
+  <button class="btn primary" id="btn-begin" style="opacity:0;transition:opacity .7s ease" onclick="startGalaxy()">
+    Begin &nbsp;<span class="arrow">→</span>
+  </button>
+</section>
 
-<!-- ═══════════════════════════════════════════════════════
+<!-- ══════════════════════════════════════════════════
      SCREEN 2 — GALAXY
-═══════════════════════════════════════════════════════ -->
-<div class="screen" id="s-galaxy">
-  <canvas id="gcanvas"></canvas>
-  <div class="gUI">
-    <div class="e-bar-wrap">
-      <div class="e-labels">
-        <span>UNCERTAINTY REMAINING</span>
-        <b id="e-pct">100%</b>
-      </div>
-      <div class="e-track"><div class="e-fill" id="e-fill"></div></div>
-    </div>
-    <div class="g-caption">
-      <h2>Each dot is one possible future Earth</h2>
-      <div id="dot-count">1,000 futures &nbsp;·&nbsp; colored by warming outcome</div>
-    </div>
-    <div class="legend">
-      <div class="li"><div class="ld" style="background:#3b82f6"></div>&lt; 2°C</div>
-      <div class="li"><div class="ld" style="background:#eab308"></div>2 – 3°C</div>
-      <div class="li"><div class="ld" style="background:#ef4444"></div>&gt; 3°C</div>
-    </div>
-  </div>
-  <div class="cards-area">
-    <div class="cards-header">
-      <span class="cards-headline">Ask the future one question at a time.</span>
-      <span class="q-remaining"><strong id="q-rem">5</strong> questions remaining</span>
-    </div>
-    <div class="cards-scroll" id="cards-scroll"></div>
-    <button class="btn-results" id="btn-results" onclick="showReveal()">
-      See What You Missed →
-    </button>
-  </div>
-</div>
+══════════════════════════════════════════════════ -->
+<section class="screen" id="s-galaxy">
+  <button class="back" onclick="goBack()">← Back</button>
+  <div class="kicker">1,000 possible futures</div>
+  <h2>Ask the future one question at a time.</h2>
 
-<!-- ═══════════════════════════════════════════════════════
-     COLLAPSE OVERLAY — dramatic fullscreen moment
-═══════════════════════════════════════════════════════ -->
+  <div class="card" style="padding:18px 22px">
+    <div class="entropy-row">
+      <span class="entropy-pct" id="e-pct">100%</span>
+      <span class="dot-count" id="dot-count">1,000 futures · colored by warming outcome</span>
+    </div>
+    <div class="card-label" style="margin-bottom:6px">Uncertainty Remaining</div>
+    <div class="e-track"><div class="e-fill" id="e-fill"></div></div>
+  </div>
+
+  <div class="galaxy-wrap"><canvas id="gcanvas"></canvas></div>
+
+  <div class="g-legend">
+    <span><i class="ldot" style="background:var(--blue)"></i> &lt; 2°C</span>
+    <span><i class="ldot" style="background:var(--gold)"></i> 2 – 3°C</span>
+    <span><i class="ldot" style="background:var(--red)"></i>  &gt; 3°C</span>
+  </div>
+
+  <div class="q-header">
+    <span class="q-header-title">Your questions</span>
+    <span class="q-remaining"><strong id="q-rem">5</strong> remaining</span>
+  </div>
+  <div class="cards-grid" id="cards-grid"></div>
+
+  <button class="btn primary" id="btn-results" style="display:none" onclick="showReveal()">
+    See what you missed &nbsp;<span class="arrow">→</span>
+  </button>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     COLLAPSE OVERLAY — prediction + answer reveal
+══════════════════════════════════════════════════ -->
 <div id="s-collapse">
-  <button class="col-back-btn" id="col-back-btn" onclick="goBackToGalaxy()">← Back to galaxy</button>
+  <button class="col-back" id="col-back-btn" onclick="goBackToGalaxy()">← Back to galaxy</button>
   <div class="col-inner">
-    <!-- Phase 1: variable name + question -->
+
+    <!-- Phase 1: question -->
     <div class="col-phase" id="cp-header">
-      <div class="col-var-label" id="cp-varname-txt"></div>
-      <div class="col-question" id="cp-q-txt"></div>
+      <div class="kicker" id="cp-varname-txt"></div>
+      <div class="col-q-text" id="cp-q-txt"></div>
     </div>
-    <!-- Phase 2: three choices — user MUST pick before seeing answer -->
+
+    <!-- Phase 2: choices -->
     <div class="col-phase" id="cp-choices">
-      <div class="col-choices-prompt">Your prediction:</div>
-      <div class="choices-grid" id="choices-grid"></div>
+      <div class="col-choices-label">Your prediction</div>
+      <div id="choices-grid"></div>
     </div>
-    <!-- Phase 3: right / wrong verdict -->
+
+    <!-- Phase 3: verdict -->
     <div class="col-phase" id="cp-verdict">
-      <div class="col-verdict-text" id="cp-verdict-txt"></div>
+      <div class="col-verdict-card" id="col-verdict-card">
+        <div class="col-verdict-big" id="cp-verdict-txt"></div>
+      </div>
     </div>
+
     <!-- Phase 4: actual answer -->
     <div class="col-phase" id="cp-answer-reveal">
-      <div class="col-the-answer">THE ANSWER</div>
-      <div class="col-ans-val" id="cp-ans-val-txt"></div>
-      <div class="col-ans-ctx" id="cp-ans-ctx-txt"></div>
+      <div class="col-answer-label">The answer</div>
+      <div class="col-answer-val" id="cp-ans-val-txt"></div>
+      <div class="col-answer-ctx" id="cp-ans-ctx-txt"></div>
     </div>
+
     <!-- Phase 5: collapse stat -->
     <div class="col-phase" id="cp-stat">
-      <div class="col-stat-num" id="cp-stat-num-txt"></div>
-      <div class="col-stat-sub">of all possible futures&ensp;collapsed</div>
+      <div class="col-stat-wrap">
+        <div class="col-stat-num" id="cp-stat-num-txt"></div>
+        <div class="col-stat-sub">of all possible futures&ensp;collapsed</div>
+      </div>
     </div>
+
     <!-- Phase 6: continue -->
-    <div class="col-phase col-btn" id="cp-btn">
-      <button class="btn-col-cont" onclick="dismissCollapse()">Continue →</button>
+    <div class="col-phase" id="cp-btn" style="margin-top:20px">
+      <button class="btn primary" onclick="dismissCollapse()">
+        Continue &nbsp;<span class="arrow">→</span>
+      </button>
     </div>
+
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     SCREEN 4 — REVEAL
-═══════════════════════════════════════════════════════ -->
-<div class="screen" id="s-reveal">
-  <div class="rev-inner">
-    <div class="rev-score-wrap" id="rev-score-wrap">
-      <div class="rev-score" id="rev-score">0%</div>
-      <div class="rev-score-sub">of climate uncertainty uncovered</div>
-      <div class="rev-headline" id="rev-headline"></div>
-    </div>
-    <div class="rev-table-wrap" id="rev-table-wrap">
-      <div class="rank-table" id="rank-table"></div>
-      <div class="callout" id="callout-box">
-        <div class="callout-text" id="callout-text"></div>
-      </div>
-      <button class="btn-truth" onclick="showTruth()">The Bigger Truth →</button>
-    </div>
+<!-- ══════════════════════════════════════════════════
+     SCREEN 3 — REVEAL
+══════════════════════════════════════════════════ -->
+<section class="screen" id="s-reveal">
+  <button class="back" onclick="goBack()">← Back</button>
+  <div class="kicker">Your results</div>
+
+  <div class="score-display" id="score-display">
+    <div class="score-big" id="rev-score">0%</div>
+    <div class="score-sub">of climate uncertainty uncovered</div>
+    <div class="score-headline" id="rev-headline"></div>
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════════════════════
-     SCREEN 5 — BIGGER TRUTH
-═══════════════════════════════════════════════════════ -->
-<div class="screen" id="s-truth">
-  <div class="truth-wrap">
-    <div class="tl" id="tl0">We don't lack <em>solutions</em> to climate change.</div>
-    <div class="tl" id="tl1">We lack the <em>right questions</em>.</div>
-    <div class="tl" id="tl2">Every dollar spent on well-understood problems<br>is a dollar not spent reducing genuine uncertainty.</div>
-    <div class="tl" id="tl3">Information theory is precise about this:<br>the most valuable question is the one that <em>collapses the most futures</em>.</div>
-    <div class="tl" id="tl4">The climate summit argued about solar subsidies.<br>The methane leak went <strong>unmeasured</strong>.</div>
-    <div class="tl" id="tl5">This is a CS109 project.<br>But it describes a <em>real problem</em>.</div>
-    <div class="truth-footer" id="truth-footer">
-      <button class="btn-method" onclick="showMethod()">View Methodology &amp; Sources ↗</button>
-      <button class="btn-play-again-sm" onclick="playAgain()">↺ Play Again</button>
+  <div id="rev-table-wrap">
+    <div class="card" style="padding:20px 22px">
+      <div class="card-label">All 8 variables — ranked by information value</div>
+      <div id="rank-table"></div>
     </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════
-     SCREEN 6 — METHODOLOGY
-═══════════════════════════════════════════════════════ -->
-<div class="screen" id="s-method">
-  <div class="method-inner">
-    <div class="method-header">
-      <div class="method-title">Methodology</div>
-      <button class="btn-play-again" onclick="playAgain()">↺ Play Again</button>
+    <div class="callout" id="callout-box" style="opacity:0;transition:opacity .5s">
+      <div class="callout-text" id="callout-text"></div>
     </div>
-
-    <div class="method-section">
-      <div class="method-section-title">CS109 Concepts Applied</div>
-      <div class="concept-grid">
-
-        <div class="concept-card">
-          <div class="cc-num">01</div>
-          <div class="cc-title">Monte Carlo Simulation</div>
-          <div class="cc-desc">1,000 independent future Earths sampled from 8 variable distributions. Each particle is one draw from the joint probability space.</div>
-          <div class="formula-box">x<sub>i</sub><sup>(k)</sup> ~ F<sub>i</sub>(μ<sub>i</sub>, σ<sub>i</sub>), &nbsp; k = 1…1000</div>
-        </div>
-
-        <div class="concept-card">
-          <div class="cc-num">02</div>
-          <div class="cc-title">Distribution Families</div>
-          <div class="cc-desc">Three families model different uncertainty types: Normal (symmetric, measurable), Uniform (genuinely unknown), Bernoulli (binary event with known probability).</div>
-          <div class="formula-box">Normal · Uniform · Bernoulli(p)</div>
-        </div>
-
-        <div class="concept-card">
-          <div class="cc-num">03</div>
-          <div class="cc-title">Maximum Likelihood (MLE)</div>
-          <div class="cc-desc">Parameters fit from real datasets. Methane: 30 country-year observations. Food waste: Project Drawdown impact range. Tipping points: IPCC AR6 probability interval.</div>
-          <div class="formula-box">μ̂ = (1/n) Σ x<sub>i</sub> &nbsp;·&nbsp; σ̂² = (1/n) Σ (x<sub>i</sub>−μ̂)²</div>
-        </div>
-
-        <div class="concept-card">
-          <div class="cc-num">04</div>
-          <div class="cc-title">Bayesian Conditioning</div>
-          <div class="cc-desc">Selecting a variable reveals its value at μ ± 1.2σ. Particles outside this window are eliminated — the posterior collapses around the revealed information.</div>
-          <div class="formula-box">S<sub>j</sub> = { x : |x<sub>j</sub> − μ<sub>j</sub>| ≤ 1.2σ<sub>j</sub> }</div>
-        </div>
-
-        <div class="concept-card">
-          <div class="cc-num">05</div>
-          <div class="cc-title">Shannon Entropy</div>
-          <div class="cc-desc">Measures how spread out the warming outcome distribution is. Computed over 10 temperature bins from 1.5°C–4.0°C. Maximum entropy = maximum uncertainty.</div>
-          <div class="formula-box">H = −Σ p<sub>i</sub> log<sub>2</sub>(p<sub>i</sub>)</div>
-        </div>
-
-        <div class="concept-card">
-          <div class="cc-num">06</div>
-          <div class="cc-title">Information Gain</div>
-          <div class="cc-desc">How much does one question reduce uncertainty? Ranked by 2·w·σ — the product of climate impact weight and distributional spread. Tipping points rank 15× above solar.</div>
-          <div class="formula-box">ΔH = H<sub>before</sub> − H<sub>after</sub> &nbsp;·&nbsp; I = 2·w·σ</div>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="method-section">
-      <div class="method-section-title">Data Sources</div>
-      <div class="source-list">
-        <div class="source-item">
-          <div class="source-dot" style="background:#f97316"></div>
-          <div class="source-text">
-            <div class="source-name">Project Drawdown 2026</div>
-            <div class="source-detail">Impact ranges for food waste (1.23–2.47 Gt), diet change (1.40–2.80 Gt), tropical forests (1.67–2.35 Gt), and 70+ other solutions.</div>
-            <a class="source-link" href="https://drawdown.org" target="_blank">drawdown.org ↗</a>
-          </div>
-        </div>
-        <div class="source-item">
-          <div class="source-dot" style="background:#ef4444"></div>
-          <div class="source-text">
-            <div class="source-name">IPCC Sixth Assessment Report — WG1 (2021)</div>
-            <div class="source-detail">Tipping point crossing probability (10–65% depending on warming). Methane 20-year GWP of 80×CO₂. Scenario envelope 1.5°C–4.0°C.</div>
-            <a class="source-link" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">ipcc.ch/ar6 ↗</a>
-          </div>
-        </div>
-        <div class="source-item">
-          <div class="source-dot" style="background:#3b82f6"></div>
-          <div class="source-text">
-            <div class="source-name">Our World in Data — Methane Emissions by Sector</div>
-            <div class="source-detail">Country-level methane series: mean 2,986 Mt CO₂-eq, σ = 246 Mt (8.2% relative uncertainty). Basis for methane leakage distribution fit.</div>
-            <a class="source-link" href="https://ourworldindata.org/methane-emissions" target="_blank">ourworldindata.org ↗</a>
-          </div>
-        </div>
-        <div class="source-item">
-          <div class="source-dot" style="background:#22c55e"></div>
-          <div class="source-text">
-            <div class="source-name">Our World in Data — Share of Electricity by Source</div>
-            <div class="source-detail">40-year solar learning curve. Drawdown solar range 9.20–11.00 Gt (18% spread — the tightest of all variables). σ = 0.09 after normalization.</div>
-            <a class="source-link" href="https://ourworldindata.org/renewable-energy" target="_blank">ourworldindata.org ↗</a>
-          </div>
-        </div>
-        <div class="source-item">
-          <div class="source-dot" style="background:#a855f7"></div>
-          <div class="source-text">
-            <div class="source-name">Global Carbon Budget 2025 v0.6</div>
-            <div class="source-detail">Baseline emissions context and land-use sector attribution used for variable impact weighting.</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div style="text-align:center;margin-top:1.5rem">
-      <button class="btn-play-again" onclick="playAgain()" style="padding:0.8rem 2.5rem;font-size:0.9rem">
-        ↺ Play Again
+    <div style="margin-top:6px">
+      <button class="btn primary" onclick="showTruth()">
+        The bigger truth &nbsp;<span class="arrow">→</span>
       </button>
     </div>
   </div>
-</div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN 4 — TRUTH
+══════════════════════════════════════════════════ -->
+<section class="screen" id="s-truth">
+  <button class="back" onclick="goBack()">← Back</button>
+  <div class="kicker">The bigger picture</div>
+  <div class="truth-lines">
+    <div class="tline" id="tl0">We don't lack <em>solutions</em> to climate change.</div>
+    <div class="tline" id="tl1">We lack the <em>right questions</em>.</div>
+    <div class="tline" id="tl2">Every dollar spent on well-understood problems is a dollar not spent reducing genuine uncertainty.</div>
+    <div class="tline" id="tl3">Information theory is precise about this: the most valuable question is the one that <em>collapses the most futures</em>.</div>
+    <div class="tline" id="tl4">The climate summit argued about solar subsidies. The methane leak went <strong>unmeasured</strong>.</div>
+    <div class="tline" id="tl5">This is a CS109 project. But it describes a <em>real problem</em>.</div>
+  </div>
+  <div class="truth-footer" id="truth-footer">
+    <button class="btn primary" onclick="showMethod()">
+      Methodology &amp; sources &nbsp;<span class="arrow">→</span>
+    </button>
+    <button class="btn-ghost" onclick="playAgain()">↺ &nbsp; Play again</button>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN 5 — METHODOLOGY
+══════════════════════════════════════════════════ -->
+<section class="screen" id="s-method">
+  <button class="back" onclick="goBack()">← Back</button>
+  <div class="kicker">Under the hood</div>
+  <div class="method-header">
+    <h2 style="margin-bottom:0">This is CS109.</h2>
+    <button class="btn-ghost" style="width:auto;padding:10px 16px" onclick="playAgain()">↺ Play again</button>
+  </div>
+  <p class="lede" style="margin-bottom:20px">Every screen runs on probability you can name. Here is the map from what you saw to the concept underneath it.</p>
+
+  <div class="card" style="padding:20px 22px;margin-bottom:14px">
+    <div class="card-label">CS109 concepts applied</div>
+    <div class="concept-row">
+      <div><div class="cn">Generating 1,000 future Earths</div><div class="cd">Independent samples from 8 variable distributions</div>
+        <div class="formula-row">x<sub>i</sub><sup>(k)</sup> ~ F<sub>i</sub>(μ<sub>i</sub>, σ<sub>i</sub>), &nbsp;k = 1…1000</div></div>
+      <div class="ct">Monte Carlo</div>
+    </div>
+    <div class="concept-row">
+      <div><div class="cn">Fitting distribution parameters</div><div class="cd">From real datasets: methane satellite data, Drawdown impact ranges, IPCC AR6 intervals</div>
+        <div class="formula-row">μ̂ = (1/n)Σx<sub>i</sub> &nbsp;·&nbsp; σ̂² = (1/n)Σ(x<sub>i</sub>−μ̂)²</div></div>
+      <div class="ct">MLE</div>
+    </div>
+    <div class="concept-row">
+      <div><div class="cn">Eliminating inconsistent futures</div><div class="cd">Selecting a variable reveals its value; particles outside ±1.2σ are removed</div>
+        <div class="formula-row">S<sub>j</sub> = { x : |x<sub>j</sub> − μ<sub>j</sub>| ≤ 1.2σ<sub>j</sub> }</div></div>
+      <div class="ct">Bayesian</div>
+    </div>
+    <div class="concept-row">
+      <div><div class="cn">Measuring remaining uncertainty</div><div class="cd">Shannon entropy over 10 warming bins from 1.5°C to 4.0°C</div>
+        <div class="formula-row">H = −Σ p<sub>i</sub> log<sub>2</sub>(p<sub>i</sub>)</div></div>
+      <div class="ct">Entropy</div>
+    </div>
+    <div class="concept-row" style="border-bottom:none">
+      <div><div class="cn">Ranking what matters most</div><div class="cd">Information value = impact weight × uncertainty. Tipping points rank 15× above solar.</div>
+        <div class="formula-row">ΔH = H<sub>before</sub> − H<sub>after</sub> &nbsp;·&nbsp; I = 2·w·σ</div></div>
+      <div class="ct">Info gain</div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:20px 22px;margin-bottom:14px">
+    <div class="card-label">Data sources</div>
+    <div class="source-row">
+      <div class="src-dot" style="background:var(--gold)"></div>
+      <div><div class="src-name">Project Drawdown 2026</div>
+        <div class="src-detail">Impact ranges for food waste (1.23–2.47 Gt), diet change (1.40–2.80 Gt), tropical forests (1.67–2.35 Gt), solar (9.20–11.00 Gt).</div>
+        <a class="src-link" href="https://drawdown.org" target="_blank">drawdown.org ↗</a></div>
+    </div>
+    <div class="source-row">
+      <div class="src-dot" style="background:var(--red)"></div>
+      <div><div class="src-name">IPCC AR6 WG1 (2021)</div>
+        <div class="src-detail">Tipping point crossing probability (10–65%). Methane 20-year GWP of 80×CO₂. Scenario envelope 1.5°C–4.0°C.</div>
+        <a class="src-link" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">ipcc.ch/ar6 ↗</a></div>
+    </div>
+    <div class="source-row">
+      <div class="src-dot" style="background:var(--blue)"></div>
+      <div><div class="src-name">Our World in Data — Methane Emissions</div>
+        <div class="src-detail">Country-level series: mean 2,986 Mt CO₂-eq, σ = 246 Mt (8.2% relative uncertainty).</div>
+        <a class="src-link" href="https://ourworldindata.org/methane-emissions" target="_blank">ourworldindata.org ↗</a></div>
+    </div>
+    <div class="source-row">
+      <div class="src-dot" style="background:var(--green)"></div>
+      <div><div class="src-name">Our World in Data — Renewable Energy</div>
+        <div class="src-detail">40-year solar learning curve confirming σ = 0.09 after normalization — the tightest of all variables.</div>
+        <a class="src-link" href="https://ourworldindata.org/renewable-energy" target="_blank">ourworldindata.org ↗</a></div>
+    </div>
+    <div class="source-row" style="border-bottom:none">
+      <div class="src-dot" style="background:#a855f7"></div>
+      <div><div class="src-name">Global Carbon Budget 2025 v0.6</div>
+        <div class="src-detail">Baseline emissions and land-use sector attribution for impact weighting.</div></div>
+    </div>
+  </div>
+
+  <div class="muted-note">
+    Built for CS109 · Stanford · Probability for Computer Scientists. All simulation logic
+    runs client-side in pure JavaScript. No frameworks.
+  </div>
+  <div style="margin-top:20px">
+    <button class="btn primary" onclick="playAgain()">↺ &nbsp; Play again</button>
+  </div>
+</section>
+
+</div><!-- /.app -->
 
 <script src="viz/variables.js"></script>
 <script>
@@ -643,108 +556,73 @@ const REVEALS = {
   food_waste:       ['~30% of reduction targets will be met',
     'Supply chains and consumer habits resist change. The gap between what\'s possible and what happens is enormous.'],
   diet_change:      ['Partial shift — concentrated in wealthy nations',
-    'Plant-rich diets are growing in Europe and North America, but haven\'t scaled to the Global South.'],
+    'Plant-rich diets are growing in Europe and North America but haven\'t scaled to the Global South.'],
   tipping_points:   ['30% probability of at least one crossing',
     'IPCC AR6 places this at 10–65%. Once triggered, tipping points are irreversible. No plan exists for this scenario.'],
   solar_cost:       ['Fell ~70% by 2040 — exactly as predicted',
-    'Solar followed its 40-year learning curve precisely. This was the most certain variable — yet it dominates policy attention.'],
+    'Solar followed its 40-year learning curve precisely. The most certain variable — yet it dominates policy attention.'],
   carbon_capture:   ['< 1 Gt / year by 2040 — far below needed',
     'Despite $50B invested, no carbon capture technology has been demonstrated at meaningful scale.'],
   tropical_forests: ['Deforestation slowed — but didn\'t stop',
     'Political instability in Brazil, Indonesia, and Congo offset a decade of international conservation funding.']
 };
 
-// ── MULTIPLE-CHOICE OPTIONS ────────────────────────────────
-// Four options per variable, spanning a realistic range. One correct:true.
 const CHOICES = {
   methane_leakage: [
-    { text: "Accurate — companies report correctly",              correct: false },
-    { text: "Slightly high — ~30–50% above reports",              correct: false },
-    { text: "About 2× higher than officially reported",           correct: true  },
-    { text: "5× or more — a catastrophic hidden crisis",          correct: false }
+    { text: 'Accurate — companies report correctly',             correct: false },
+    { text: 'Slightly high — ~30–50% above reports',            correct: false },
+    { text: 'About 2× higher than officially reported',         correct: true  },
+    { text: '5× or more — a catastrophic hidden crisis',        correct: false }
   ],
   policy_speed: [
-    { text: "Accelerating — most nations ahead of targets",       correct: false },
-    { text: "On track — roughly meeting IPCC commitments",        correct: false },
-    { text: "Slow — falling short of required pathways",          correct: true  },
-    { text: "Stalled — net policy regression since 2020",         correct: false }
+    { text: 'Accelerating — most nations ahead of targets',     correct: false },
+    { text: 'On track — roughly meeting IPCC commitments',      correct: false },
+    { text: 'Slow — falling short of required pathways',        correct: true  },
+    { text: 'Stalled — net policy regression since 2020',       correct: false }
   ],
   food_waste: [
-    { text: "Over 75% eliminated — major systemic change",        correct: false },
-    { text: "About half — solid progress but gaps remain",        correct: false },
-    { text: "About a third — behavior change is hard",            correct: true  },
-    { text: "Under 10% — consumption outpaces all efficiency",    correct: false }
+    { text: 'Over 75% eliminated — major systemic change',      correct: false },
+    { text: 'About half — solid progress but gaps remain',      correct: false },
+    { text: 'About a third — behavior change is hard',          correct: true  },
+    { text: 'Under 10% — consumption outpaces all efficiency',  correct: false }
   ],
   diet_change: [
-    { text: "Major global shift — plant-based fully mainstream",  correct: false },
-    { text: "Significant in developed nations, spreading fast",   correct: false },
-    { text: "Partial — wealthy nations only, not globally",       correct: true  },
-    { text: "No meaningful shift — meat demand rises with GDP",   correct: false }
+    { text: 'Major global shift — plant-based fully mainstream', correct: false },
+    { text: 'Significant in developed nations, spreading fast', correct: false },
+    { text: 'Partial — wealthy nations only, not globally',     correct: true  },
+    { text: 'No meaningful shift — meat demand rises with GDP', correct: false }
   ],
   tipping_points: [
-    { text: "Very low risk — under 10% probability",              correct: false },
-    { text: "Low risk — roughly 10–20% probability",              correct: false },
-    { text: "Moderate risk — 20–50% probability",                 correct: true  },
-    { text: "High risk — more likely than not (>50%)",            correct: false }
+    { text: 'Very low risk — under 10% probability',            correct: false },
+    { text: 'Low risk — roughly 10–20% probability',            correct: false },
+    { text: 'Moderate risk — 20–50% probability',               correct: true  },
+    { text: 'High risk — more likely than not (>50%)',          correct: false }
   ],
   solar_cost: [
-    { text: "Minimal decline — under 20% cheaper by 2040",        correct: false },
-    { text: "Modest — 20–40% cheaper by 2040",                    correct: false },
-    { text: "Major decline — 60–80% cheaper by 2040",             correct: true  },
-    { text: "Revolutionary — 95%+ cheaper, approaching free",     correct: false }
+    { text: 'Minimal decline — under 20% cheaper by 2040',      correct: false },
+    { text: 'Modest — 20–40% cheaper by 2040',                  correct: false },
+    { text: 'Major decline — 60–80% cheaper by 2040',           correct: true  },
+    { text: 'Revolutionary — 95%+ cheaper, approaching free',   correct: false }
   ],
   carbon_capture: [
-    { text: "Transformative — 10+ Gt removed per year",           correct: false },
-    { text: "Significant — 3–5 Gt removed per year by 2040",      correct: false },
-    { text: "Limited — under 1 Gt per year by 2040",              correct: true  },
-    { text: "Negligible — most projects quietly abandoned",        correct: false }
+    { text: 'Transformative — 10+ Gt removed per year',         correct: false },
+    { text: 'Significant — 3–5 Gt removed per year by 2040',   correct: false },
+    { text: 'Limited — under 1 Gt per year by 2040',           correct: true  },
+    { text: 'Negligible — most projects quietly abandoned',     correct: false }
   ],
   tropical_forests: [
-    { text: "Recovery — net gain in global forest cover",         correct: false },
-    { text: "Roughly stable — losses offset by reforestation",    correct: false },
-    { text: "Partial loss — deforestation slowed but continues",  correct: true  },
-    { text: "Catastrophic — over half the tropics deforested",    correct: false }
+    { text: 'Recovery — net gain in global forest cover',       correct: false },
+    { text: 'Roughly stable — losses offset by reforestation', correct: false },
+    { text: 'Partial loss — deforestation slowed but continues', correct: true  },
+    { text: 'Catastrophic — over half the tropics deforested',  correct: false }
   ]
 };
 
 // ── STATE ──────────────────────────────────────────────────
 let pts=[], initH=0, curH=0, pickedIds=[], totalGain=0;
-let galaxyAnimId, sfAnimId, canvas, ctx, colDone=null, resizeH=null;
-let pickSnapshot=null; // saved per-pick for back-navigation
-
-// ── STARFIELD ──────────────────────────────────────────────
-const stars = Array.from({length:220}, () => ({
-  x: Math.random(), y: Math.random(),
-  r: 0.3 + Math.random()*1.1,
-  phase: Math.random()*Math.PI*2,
-  speed: 0.008 + Math.random()*0.018
-}));
-
-function runStarfield() {
-  const sfCanvas = document.getElementById('starfield');
-  const sfCtx = sfCanvas.getContext('2d');
-  let t = 0;
-  function sfResize() {
-    sfCanvas.width  = window.innerWidth;
-    sfCanvas.height = window.innerHeight;
-  }
-  sfResize();
-  window.addEventListener('resize', sfResize);
-
-  function sfFrame() {
-    t += 0.016;
-    sfCtx.clearRect(0,0,sfCanvas.width,sfCanvas.height);
-    stars.forEach(s => {
-      const op = 0.25 + 0.55 * (0.5 + 0.5*Math.sin(s.phase + t*s.speed));
-      sfCtx.beginPath();
-      sfCtx.arc(s.x*sfCanvas.width, s.y*sfCanvas.height, s.r, 0, Math.PI*2);
-      sfCtx.fillStyle = `rgba(255,255,255,${op})`;
-      sfCtx.fill();
-    });
-    sfAnimId = requestAnimationFrame(sfFrame);
-  }
-  sfFrame();
-}
+let galaxyAnimId, canvas, ctx, colDone=null, resizeH=null;
+let pickSnapshot=null;
+let navHistory=[]; // for ← Back navigation
 
 // ── DISTRIBUTIONS ──────────────────────────────────────────
 function randn() {
@@ -765,47 +643,47 @@ function sample(v) {
 function buildPts() {
   const W = CLIMATE_VARIABLES.reduce((s,v) => s+v.impact_weight, 0);
   pts = Array.from({length:N_P}, () => {
-    const vals = {};
-    let ws = 0;
+    const vals={};
+    let ws=0;
     CLIMATE_VARIABLES.forEach(v => {
-      const x = sample(v);
-      vals[v.id] = x;
-      ws += HARM[v.id] * (x-0.5) * v.impact_weight;
+      const x=sample(v);
+      vals[v.id]=x;
+      ws+=HARM[v.id]*(x-.5)*v.impact_weight;
     });
-    const score = Math.max(0, Math.min(1, 0.5 + ws/W));
+    const score = Math.max(0, Math.min(1, .5+ws/W));
     const a = Math.random()*2*Math.PI;
-    const r = Math.abs(randn())*0.28 + 0.02;
-    const nx = 0.5 + Math.cos(a)*r + (Math.random()-0.5)*0.10;
-    const ny = 0.5 + Math.sin(a)*r*0.68 + (Math.random()-0.5)*0.09;
+    const r = Math.abs(randn())*0.28+0.02;
+    const nx = .5+Math.cos(a)*r+(Math.random()-.5)*0.10;
+    const ny = .5+Math.sin(a)*r*0.68+(Math.random()-.5)*0.09;
     return {
       vals, score, rgb: scoreRGB(score),
-      x: Math.max(0.01, Math.min(0.99, nx)),
-      y: Math.max(0.01, Math.min(0.99, ny)),
-      vx: (Math.random()-0.5)*0.00022,
-      vy: (Math.random()-0.5)*0.00022,
-      r: 1.3 + Math.random()*1.5,
-      op: 1, tOp: 1
+      x: Math.max(.01,Math.min(.99,nx)),
+      y: Math.max(.01,Math.min(.99,ny)),
+      vx: (Math.random()-.5)*0.00020,
+      vy: (Math.random()-.5)*0.00020,
+      r: 1.4+Math.random()*1.5,
+      op:1, tOp:1
     };
   });
 }
 
 function scoreRGB(t) {
-  const lp = (a,b,t) => a+(b-a)*t;
+  const lp=(a,b,t)=>a+(b-a)*t;
   let r,g,b;
-  if      (t<0.4)  { const s=t/0.4;       r=lp(59,234,s);  g=lp(130,179,s); b=lp(246,8,s);  }
-  else if (t<0.75) { const s=(t-0.4)/0.35; r=lp(234,249,s); g=lp(179,115,s); b=lp(8,22,s);   }
-  else             { const s=(t-0.75)/0.25; r=lp(249,239,s); g=lp(115,68,s);  b=lp(22,68,s);  }
-  return [r|0, g|0, b|0];
+  if      (t<0.4)  {const s=t/0.4;       r=lp(74,255,s); g=lp(168,206,s); b=lp(255,92,s);}
+  else if (t<0.75) {const s=(t-0.4)/0.35; r=lp(255,255,s); g=lp(206,91,s);  b=lp(92,107,s);}
+  else             {const s=(t-0.75)/0.25; r=lp(255,239,s); g=lp(91,68,s);   b=lp(107,68,s);}
+  return [r|0,g|0,b|0];
 }
 
 // ── ENTROPY ────────────────────────────────────────────────
 function entropy(arr) {
-  const live = arr.filter(p => p.tOp>0.05);
+  const live = arr.filter(p=>p.tOp>0.05);
   if (!live.length) return 0;
   const bins = new Array(N_B).fill(0);
-  live.forEach(p => bins[Math.min(N_B-1, (p.score*N_B)|0)]++);
+  live.forEach(p => bins[Math.min(N_B-1,(p.score*N_B)|0)]++);
   const n = live.length;
-  return bins.reduce((H,c) => c ? H - c/n*Math.log2(c/n) : H, 0);
+  return bins.reduce((H,c) => c ? H-c/n*Math.log2(c/n) : H, 0);
 }
 
 // ── GALAXY CANVAS ──────────────────────────────────────────
@@ -813,60 +691,70 @@ function setupCanvas() {
   canvas = document.getElementById('gcanvas');
   ctx = canvas.getContext('2d');
   if (resizeH) window.removeEventListener('resize', resizeH);
-  resizeH = () => { canvas.width=window.innerWidth; canvas.height=window.innerHeight; };
+  resizeH = () => {
+    // Use device pixel ratio for crisp rendering
+    const dpr = window.devicePixelRatio||1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.style.width  = rect.width  + 'px';
+    canvas.style.height = rect.height + 'px';
+    canvas.width  = rect.width  * dpr;
+    canvas.height = rect.height * dpr;
+  };
   window.addEventListener('resize', resizeH);
-  resizeH();
+  // Wait one tick for layout to settle
+  setTimeout(resizeH, 16);
 }
 
 function galaxyFrame() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const W=canvas.width, H=canvas.height;
-  const TOP=88, BOT=160, dH=H-TOP-BOT;
+  const dpr = window.devicePixelRatio||1;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const W = canvas.width/dpr, H = canvas.height/dpr;
+
   for (const p of pts) {
-    p.op += (p.tOp - p.op) * 0.055;
+    p.op += (p.tOp-p.op)*0.055;
     if (p.op < 0.008) continue;
-    p.x = Math.max(0, Math.min(1, p.x+p.vx));
-    p.y = Math.max(0, Math.min(1, p.y+p.vy));
+    p.x = Math.max(0,Math.min(1, p.x+p.vx));
+    p.y = Math.max(0,Math.min(1, p.y+p.vy));
     if (p.x<=0||p.x>=1) p.vx*=-1;
     if (p.y<=0||p.y>=1) p.vy*=-1;
-    const px=p.x*W, py=TOP+p.y*dH;
+
+    const px=p.x*W, py=p.y*H;
     const [r,g,b]=p.rgb, op=p.op;
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
     const gr = ctx.createRadialGradient(px,py,0,px,py,p.r*5);
     gr.addColorStop(0,   `rgba(${r},${g},${b},${op*0.6})`);
-    gr.addColorStop(0.3, `rgba(${r},${g},${b},${op*0.22})`);
+    gr.addColorStop(0.3, `rgba(${r},${g},${b},${op*0.2})`);
     gr.addColorStop(1,   `rgba(${r},${g},${b},0)`);
     ctx.beginPath(); ctx.arc(px,py,p.r*5,0,Math.PI*2);
     ctx.fillStyle=gr; ctx.fill();
     ctx.beginPath(); ctx.arc(px,py,p.r,0,Math.PI*2);
     ctx.fillStyle=`rgba(${r},${g},${b},${Math.min(1,op*1.4)})`; ctx.fill();
+    ctx.restore();
   }
   galaxyAnimId = requestAnimationFrame(galaxyFrame);
 }
 
 // ── CARDS ──────────────────────────────────────────────────
 function buildCards() {
-  const sc = document.getElementById('cards-scroll');
-  sc.innerHTML = '';
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = '';
   CLIMATE_VARIABLES.forEach(v => {
-    // Compute alpha version of color for glow
-    const hexToRGB = h => {
-      const r = parseInt(h.slice(1,3),16);
-      const g = parseInt(h.slice(3,5),16);
-      const b = parseInt(h.slice(5,7),16);
-      return `rgba(${r},${g},${b},0.4)`;
-    };
+    const hex = v.color;
+    const rgb = parseInt(hex.slice(1,3),16)+','+parseInt(hex.slice(3,5),16)+','+parseInt(hex.slice(5,7),16);
     const d = document.createElement('div');
     d.className = 'qcard';
     d.id = 'card-'+v.id;
-    d.style.setProperty('--cc', v.color);
-    d.style.setProperty('--cc-g', hexToRGB(v.color));
+    d.style.setProperty('--cc', hex);
+    d.style.setProperty('--cc-g', `rgba(${rgb},0.35)`);
     d.innerHTML =
-      `<div class="card-qmark">?</div>
+      `<div class="qmark">?</div>
        <div class="cname">${v.name}</div>
        <div class="cq">${v.question}</div>
        <div class="ccheck">✓</div>`;
     d.onclick = () => pickVar(v);
-    sc.appendChild(d);
+    grid.appendChild(d);
   });
 }
 
@@ -874,91 +762,70 @@ function buildCards() {
 function pickVar(v) {
   if (pickedIds.includes(v.id) || pickedIds.length >= N_Q) return;
 
-  // Snapshot state BEFORE any mutation so goBackToGalaxy can undo
-  const prevCurH = curH, prevTotalGain = totalGain;
-  const fadedIndices = [];
-
-  // Filter particles, recording which ones we fade
-  const lo = Math.max(0, v.mean - 1.2*v.std);
-  const hi = Math.min(1, v.mean + 1.2*v.std);
-  pts.forEach((p, i) => {
-    if (p.tOp > 0.05 && (p.vals[v.id] < lo || p.vals[v.id] > hi)) {
-      fadedIndices.push(i);
-      p.tOp = 0;
+  const prevCurH=curH, prevTotalGain=totalGain, fadedIndices=[];
+  const lo=Math.max(0,v.mean-1.2*v.std), hi=Math.min(1,v.mean+1.2*v.std);
+  pts.forEach((p,i) => {
+    if (p.tOp>0.05 && (p.vals[v.id]<lo || p.vals[v.id]>hi)) {
+      fadedIndices.push(i); p.tOp=0;
     }
   });
 
-  // Entropy + gain
-  const nH   = entropy(pts);
-  const g    = Math.max(0, prevCurH - nH);
-  const gPct = Math.round(g / initH * 100);
-  curH      = nH;
-  totalGain = prevTotalGain + g;
-
-  // Commit pick to UI
+  const nH=entropy(pts), g=Math.max(0,prevCurH-nH);
+  curH=nH; totalGain=prevTotalGain+g;
   pickedIds.push(v.id);
+  pickSnapshot={varId:v.id, prevCurH, prevTotalGain, fadedIndices};
+
   document.getElementById('card-'+v.id).classList.add('done');
   document.getElementById('q-rem').textContent = N_Q - pickedIds.length;
 
-  // Save snapshot so the back button can reverse everything above
-  pickSnapshot = { varId: v.id, prevCurH, prevTotalGain, fadedIndices };
-
-  // Update entropy bar + dot count
-  const remPct = Math.max(0, Math.round(curH/initH*100));
-  document.getElementById('e-pct').textContent  = remPct + '%';
-  document.getElementById('e-fill').style.width = remPct + '%';
+  const remPct = Math.max(0,Math.round(curH/initH*100));
+  document.getElementById('e-pct').textContent  = remPct+'%';
+  document.getElementById('e-fill').style.width = remPct+'%';
   const alive = pts.filter(p=>p.tOp>0.05).length;
   document.getElementById('dot-count').textContent = alive.toLocaleString()+' futures remain';
 
-  // Open the question/prediction screen
-  showCollapse(v, gPct, () => {
-    if (pickedIds.length >= N_Q)
-      document.getElementById('btn-results').classList.add('show');
+  showCollapse(v, Math.round(g/initH*100), () => {
+    if (pickedIds.length >= N_Q) {
+      const btn = document.getElementById('btn-results');
+      btn.style.display = 'flex';
+    }
   });
 }
 
 // ── COLLAPSE OVERLAY ───────────────────────────────────────
 function showCollapse(v, pct, cb) {
   colDone = cb;
-
   document.getElementById('cp-varname-txt').textContent = v.name;
   document.getElementById('cp-q-txt').textContent       = v.question;
 
-  // Build 4 choice buttons
   const grid = document.getElementById('choices-grid');
   grid.innerHTML = '';
   CHOICES[v.id].forEach(opt => {
     const btn = document.createElement('button');
-    btn.className        = 'choice-btn';
-    btn.textContent      = opt.text;
-    btn.dataset.correct  = opt.correct ? '1' : '0';
+    btn.className       = 'col-choice-btn';
+    btn.textContent     = opt.text;
+    btn.dataset.correct = opt.correct ? '1' : '0';
     btn.onclick = () => pickChoice(btn, opt.correct, v, pct);
     grid.appendChild(btn);
   });
 
-  // Reset phases and make back button visible
   document.querySelectorAll('#s-collapse .col-phase').forEach(p => p.classList.remove('in'));
   document.getElementById('col-back-btn').classList.remove('hidden');
 
   document.getElementById('s-collapse').classList.add('show');
-
-  setTimeout(() => document.getElementById('cp-header').classList.add('in'),  300);
-  setTimeout(() => document.getElementById('cp-choices').classList.add('in'), 950);
+  setTimeout(() => document.getElementById('cp-header').classList.add('in'),  280);
+  setTimeout(() => document.getElementById('cp-choices').classList.add('in'), 900);
 }
 
-// Called when user commits to one of the four choices
 function pickChoice(pickedBtn, isCorrect, v, pct) {
-  // Once a choice is made the pick is committed — hide the back link
   document.getElementById('col-back-btn').classList.add('hidden');
-  // Snapshot no longer needed (can't go back after answering)
   pickSnapshot = null;
 
-  // Lock + colour all buttons
-  document.querySelectorAll('.choice-btn').forEach(btn => {
+  document.querySelectorAll('.col-choice-btn').forEach(btn => {
     btn.disabled = true;
-    if (btn.dataset.correct === '1') {
-      btn.classList.add(btn === pickedBtn && isCorrect ? 'st-right' : 'st-correct');
-    } else if (btn === pickedBtn) {
+    if (btn.dataset.correct==='1') {
+      btn.classList.add(btn===pickedBtn&&isCorrect ? 'st-right' : 'st-correct');
+    } else if (btn===pickedBtn) {
       btn.classList.add('st-wrong');
     } else {
       btn.classList.add('st-dim');
@@ -967,136 +834,121 @@ function pickChoice(pickedBtn, isCorrect, v, pct) {
 
   // Phase 3: verdict
   setTimeout(() => {
-    const vTxt = document.getElementById('cp-verdict-txt');
-    vTxt.textContent = isCorrect ? '✓  Correct' : '✗  Wrong';
-    vTxt.className   = 'col-verdict-text ' + (isCorrect ? 'verdict-right' : 'verdict-wrong');
+    const card = document.getElementById('col-verdict-card');
+    const txt  = document.getElementById('cp-verdict-txt');
+    txt.textContent = isCorrect ? '✓  Correct' : '✗  Wrong';
+    txt.className   = 'col-verdict-big '+(isCorrect?'right':'wrong');
+    card.className  = 'col-verdict-card'+(isCorrect?'':' wrong-verdict');
     document.getElementById('cp-verdict').classList.add('in');
-  }, 450);
+  }, 420);
 
-  // Phase 4: real answer
+  // Phase 4: answer
   setTimeout(() => {
-    document.getElementById('cp-ans-val-txt').textContent = REVEALS[v.id][0];
+    const val = document.getElementById('cp-ans-val-txt');
+    val.textContent  = REVEALS[v.id][0];
+    val.style.color  = v.color;
     document.getElementById('cp-ans-ctx-txt').textContent = REVEALS[v.id][1];
-    document.getElementById('cp-ans-val-txt').style.color = v.color;
     document.getElementById('cp-answer-reveal').classList.add('in');
-  }, 1350);
+  }, 1300);
 
-  // Phase 5: collapse stat
+  // Phase 5: stat
   setTimeout(() => {
-    document.getElementById('cp-stat-num-txt').textContent = pct + '%';
+    document.getElementById('cp-stat-num-txt').textContent = pct+'%';
     document.getElementById('cp-stat').classList.add('in');
-  }, 2300);
+  }, 2200);
 
-  // Phase 6: continue button
-  setTimeout(() => document.getElementById('cp-btn').classList.add('in'), 3100);
+  // Phase 6: continue
+  setTimeout(() => document.getElementById('cp-btn').classList.add('in'), 3000);
 }
 
-// ── GO BACK (before answering) ─────────────────────────────
 function goBackToGalaxy() {
-  if (!pickSnapshot) return; // already answered — shouldn't happen
-  const snap = pickSnapshot;
-  pickSnapshot = null;
+  if (!pickSnapshot) return;
+  const snap=pickSnapshot; pickSnapshot=null;
 
-  // Restore faded particles (animation loop fades them back in)
-  snap.fadedIndices.forEach(i => { pts[i].tOp = 1; });
-
-  // Restore entropy bookkeeping
-  curH      = snap.prevCurH;
-  totalGain = snap.prevTotalGain;
-
-  // Undo the pick
-  pickedIds = pickedIds.filter(id => id !== snap.varId);
+  snap.fadedIndices.forEach(i => { pts[i].tOp=1; });
+  curH=snap.prevCurH; totalGain=snap.prevTotalGain;
+  pickedIds=pickedIds.filter(id=>id!==snap.varId);
   document.getElementById('card-'+snap.varId).classList.remove('done');
-  document.getElementById('q-rem').textContent = N_Q - pickedIds.length;
+  document.getElementById('q-rem').textContent = N_Q-pickedIds.length;
 
-  // Restore entropy bar
-  const remPct = Math.max(0, Math.round(curH/initH*100));
-  document.getElementById('e-pct').textContent  = remPct + '%';
-  document.getElementById('e-fill').style.width = remPct + '%';
-
-  // Restore dot count
-  const alive = pts.filter(p => p.tOp > 0.05).length;
+  const remPct=Math.max(0,Math.round(curH/initH*100));
+  document.getElementById('e-pct').textContent  = remPct+'%';
+  document.getElementById('e-fill').style.width = remPct+'%';
+  const alive=pts.filter(p=>p.tOp>0.05).length;
   document.getElementById('dot-count').textContent =
-    alive >= N_P
-      ? '1,000 futures  ·  colored by warming outcome'
-      : alive.toLocaleString() + ' futures remain';
-
-  // Ensure results button is hidden (user hasn't reached 5 picks)
-  document.getElementById('btn-results').classList.remove('show');
+    alive>=N_P ? '1,000 futures · colored by warming outcome' : alive.toLocaleString()+' futures remain';
+  document.getElementById('btn-results').style.display='none';
 
   document.getElementById('s-collapse').classList.remove('show');
-  colDone = null;
+  colDone=null;
 }
 
 function dismissCollapse() {
   document.getElementById('s-collapse').classList.remove('show');
-  if (colDone) { colDone(); colDone = null; }
+  if (colDone) { colDone(); colDone=null; }
 }
 
-// ── SCREEN TRANSITIONS ─────────────────────────────────────
-function go(fromId, toId, cb) {
-  document.getElementById(fromId).classList.remove('active');
-  setTimeout(() => {
-    document.getElementById(toId).classList.add('active');
-    if (cb) cb();
-  }, 600);
+// ── NAVIGATION ─────────────────────────────────────────────
+function goScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0, behavior:'instant'});
 }
 
-// ── START GALAXY ───────────────────────────────────────────
+function goBack() {
+  const prev = navHistory.pop();
+  if (!prev) return;
+  // Restart galaxy if returning to it
+  if (prev==='s-galaxy' && pts.length && !galaxyAnimId) galaxyFrame();
+  goScreen(prev);
+}
+
+// ── MAIN FLOWS ─────────────────────────────────────────────
 function startGalaxy() {
-  cancelAnimationFrame(sfAnimId);
-  go('s-hook', 's-galaxy', () => {
-    setupCanvas();
-    buildPts();
-    buildCards();
-    initH = entropy(pts);
-    curH  = initH;
-    galaxyFrame();
-  });
+  navHistory=['s-hook'];
+  setupCanvas();
+  buildPts();
+  buildCards();
+  initH=entropy(pts); curH=initH;
+  goScreen('s-galaxy');
+  setTimeout(galaxyFrame, 80); // let canvas resize settle first
 }
 
-// ── REVEAL ─────────────────────────────────────────────────
 function showReveal() {
   cancelAnimationFrame(galaxyAnimId);
-  const totalPct  = Math.round(totalGain / initH * 100);
-  const sorted    = [...CLIMATE_VARIABLES].sort((a,b) => b.info_gain - a.info_gain);
+  galaxyAnimId = null;
+  navHistory.push('s-galaxy');
+
+  const totalPct  = Math.round(totalGain/initH*100);
+  const sorted    = [...CLIMATE_VARIABLES].sort((a,b)=>b.info_gain-a.info_gain);
   const maxG      = sorted[0].info_gain;
   const topPicked = sorted.slice(0,4).filter(v=>pickedIds.includes(v.id)).length;
   const botPicked = sorted.slice(4).filter(v=>pickedIds.includes(v.id)).length;
 
-  // Reset table wrapper so it's hidden initially
-  const twrap = document.getElementById('rev-table-wrap');
-  const swrap = document.getElementById('rev-score-wrap');
-  twrap.classList.remove('in');
-  swrap.classList.remove('in');
-  document.getElementById('callout-box').classList.remove('in');
+  document.getElementById('rev-score').textContent = '0%';
+  document.getElementById('rev-headline').textContent =
+    [' You found the signal in the noise. Rare.',
+     'You found two of the critical unknowns. One slipped past.',
+     'You found one. Two critical questions went unasked.',
+     'You focused on the visible. The real uncertainty was elsewhere.'
+    ][Math.max(0,3-topPicked)];
 
-  // Build headline
-  const headlines = [
-    'You found the signal in the noise. Rare.',
-    'You found two of the critical unknowns. One slipped past.',
-    'You found one. The other critical questions went unasked.',
-    'You focused on the visible. The real uncertainty was elsewhere.'
-  ];
-  document.getElementById('rev-headline').textContent = headlines[Math.max(0,3-topPicked)];
-
-  // Build ranking rows (hidden initially)
+  // Build rank rows
   const tbl = document.getElementById('rank-table');
   tbl.innerHTML = '';
   sorted.forEach((v,i) => {
-    const ip  = pickedIds.includes(v.id);
-    const im  = i<4 && !ip;
-    const pct = Math.round(v.info_gain/maxG*100);
-    const row = document.createElement('div');
-    row.className = 'rrow' + (ip?' picked':'') + (im?' missed':'');
-    let badge = ip ? '<span class="rbadge rbadge-yes">✓ asked</span>'
-                : im? '<span class="rbadge rbadge-miss">missed</span>' : '';
-    row.innerHTML =
+    const ip=pickedIds.includes(v.id), im=i<4&&!ip;
+    const pct=Math.round(v.info_gain/maxG*100);
+    const row=document.createElement('div');
+    row.className='rrow'+(ip?' picked':'')+(im?' missed':'');
+    let badge=ip?'<span class="rbadge rbadge-yes">✓ asked</span>'
+              :im?'<span class="rbadge rbadge-miss">missed</span>':'';
+    row.innerHTML=
       `<div class="rnum">#${i+1}</div>
-       <div class="rdot" style="background:${v.color};box-shadow:0 0 6px ${v.color}88"></div>
+       <div class="rdot" style="background:${v.color};box-shadow:0 0 5px ${v.color}88"></div>
        <div class="rinfo">
          <div class="rname">${v.name}</div>
-         <div class="rsurprise">${v.surprise}</div>
+         <div class="rsurp">${v.surprise}</div>
        </div>
        <div class="rbar-wrap">
          <div class="rbar-track">
@@ -1106,127 +958,102 @@ function showReveal() {
     tbl.appendChild(row);
   });
 
-  // Callout text
-  let calloutHTML;
-  if (botPicked > 0) {
-    calloutHTML = `You spent <span class="highlight">${botPicked} question${botPicked>1?'s':''}</span> on the bottom half.<br>
-      <span class="highlight">So did the last G7 climate summit.</span>`;
-  } else if (topPicked >= 3) {
-    calloutHTML = `You prioritized <span class="good">uncertainty over optics.</span><br>That's rarer than you think.`;
+  // Callout
+  const callout = document.getElementById('callout-box');
+  callout.style.opacity='0';
+  let calloutHTML, isGood=false;
+  if (botPicked>0) {
+    calloutHTML=`You spent <span class="hl">${botPicked} question${botPicked>1?'s':''}</span> on the bottom half. <span class="hl">So did the last G7 climate summit.</span>`;
+  } else if (topPicked>=3) {
+    isGood=true;
+    calloutHTML=`You prioritized <span class="hl-g">uncertainty over optics.</span> That's rarer than you think.`;
   } else {
-    calloutHTML = `The last G7 spent more time on solar subsidies<br>than <span class="highlight">methane monitoring</span>.<br>The highest-uncertainty variables rarely make headlines.`;
+    calloutHTML=`The last G7 spent more time on solar subsidies than <span class="hl">methane monitoring</span>. The highest-uncertainty variables rarely make headlines.`;
   }
-  document.getElementById('callout-text').innerHTML = calloutHTML;
+  document.getElementById('callout-text').innerHTML=calloutHTML;
+  callout.className='callout'+(isGood?' good':'');
 
-  go('s-galaxy', 's-reveal', () => {
-    // Phase 1: score animates in
-    setTimeout(() => {
-      swrap.classList.add('in');
-      animCount(document.getElementById('rev-score'), totalPct, 1600, '%', () => {
-        // Phase 2: after 500ms pause, table rows stagger in
-        setTimeout(() => {
-          twrap.classList.add('in');
-          document.querySelectorAll('.rrow').forEach((row, i) => {
-            setTimeout(() => {
-              row.classList.add('in');
-              const bar = row.querySelector('.rbar-fill');
-              if (bar) bar.style.width = bar.dataset.w + '%';
-            }, i * 300);  // 300ms stagger
-          });
-          // Callout after all rows
+  goScreen('s-reveal');
+
+  // Animate score then stagger rows
+  setTimeout(() => {
+    animCount(document.getElementById('rev-score'), totalPct, 1400, '%', () => {
+      setTimeout(() => {
+        document.querySelectorAll('.rrow').forEach((row,i) => {
           setTimeout(() => {
-            document.getElementById('callout-box').classList.add('in');
-          }, sorted.length * 300 + 200);
-        }, 500);
-      });
-    }, 400);
-  });
+            row.classList.add('in');
+            const bar=row.querySelector('.rbar-fill');
+            if (bar) bar.style.width=bar.dataset.w+'%';
+          }, i*300);
+        });
+        setTimeout(() => { callout.style.opacity='1'; },
+          sorted.length*300+200);
+      }, 400);
+    });
+  }, 300);
 }
 
-function animCount(el, target, duration, suffix, cb) {
-  const start = performance.now();
-  function tick(now) {
-    const t    = Math.min(1, (now-start)/duration);
-    const ease = 1 - Math.pow(1-t, 4);
-    el.textContent = Math.round(ease*target) + suffix;
-    if (t < 1) requestAnimationFrame(tick);
-    else if (cb) cb();
-  }
-  requestAnimationFrame(tick);
+function animCount(el, target, dur, suffix, cb) {
+  const t0 = performance.now();
+  (function tick(now) {
+    const t=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-t,4);
+    el.textContent=Math.round(e*target)+suffix;
+    if (t<1) requestAnimationFrame(tick); else if (cb) cb();
+  })(t0);
 }
 
-// ── TRUTH ──────────────────────────────────────────────────
 function showTruth() {
-  go('s-reveal', 's-truth', () => {
-    ['tl0','tl1','tl2','tl3','tl4','tl5'].forEach((id,i) =>
-      setTimeout(() => document.getElementById(id).classList.add('in'), 500 + i*720));
-    setTimeout(() =>
-      document.getElementById('truth-footer').classList.add('in'), 500 + 6*720);
-  });
+  navHistory.push('s-reveal');
+  goScreen('s-truth');
+  const ids=['tl0','tl1','tl2','tl3','tl4','tl5'];
+  ids.forEach((id,i) =>
+    setTimeout(()=>document.getElementById(id).classList.add('in'), 400+i*680));
+  setTimeout(()=>document.getElementById('truth-footer').classList.add('in'), 400+ids.length*680);
 }
 
-// ── METHODOLOGY ────────────────────────────────────────────
 function showMethod() {
-  go('s-truth', 's-method');
+  navHistory.push('s-truth');
+  goScreen('s-method');
 }
 
 // ── PLAY AGAIN ─────────────────────────────────────────────
 function playAgain() {
-  // Stop animations
-  cancelAnimationFrame(galaxyAnimId);
-  cancelAnimationFrame(sfAnimId);
+  cancelAnimationFrame(galaxyAnimId); galaxyAnimId=null;
+  pts=[]; initH=0; curH=0; pickedIds=[]; totalGain=0;
+  colDone=null; pickSnapshot=null; navHistory=[];
 
-  // Reset state
-  pts=[]; initH=0; curH=0; pickedIds=[]; totalGain=0; colDone=null; pickSnapshot=null;
-
-  // Reset entropy UI
+  document.getElementById('s-collapse').classList.remove('show');
   document.getElementById('e-pct').textContent  = '100%';
   document.getElementById('e-fill').style.width = '100%';
   document.getElementById('dot-count').textContent = '1,000 futures · colored by warming outcome';
   document.getElementById('q-rem').textContent  = '5';
-  document.getElementById('btn-results').classList.remove('show');
-
-  // Reset collapse overlay
-  document.getElementById('s-collapse').classList.remove('show');
-
-  // Reset reveal screen elements
-  document.getElementById('rev-score-wrap').classList.remove('in');
-  document.getElementById('rev-table-wrap').classList.remove('in');
+  document.getElementById('btn-results').style.display = 'none';
   document.getElementById('rev-score').textContent = '0%';
   document.querySelectorAll('.rrow').forEach(r => r.classList.remove('in'));
-
-  // Reset truth screen
   ['tl0','tl1','tl2','tl3','tl4','tl5'].forEach(id =>
     document.getElementById(id).classList.remove('in'));
   document.getElementById('truth-footer').classList.remove('in');
 
-  // Reset hook lines
-  document.querySelectorAll('.hl').forEach(el => el.classList.remove('in'));
-  document.getElementById('btn-begin').classList.remove('in');
+  // Reset hook
+  ['fl0','fl1','fl2'].forEach(id => document.getElementById(id).classList.remove('in'));
+  const btn=document.getElementById('btn-begin');
+  btn.style.opacity='0'; btn.style.transition='opacity .7s ease';
 
-  // Switch all screens off, enable hook
-  ['s-galaxy','s-reveal','s-truth','s-method'].forEach(id =>
-    document.getElementById(id).classList.remove('active'));
-  document.getElementById('s-hook').classList.add('active');
-
-  // Restart starfield + hook animation
-  setTimeout(() => {
-    runStarfield();
-    animHook();
-  }, 400);
+  goScreen('s-hook');
+  setTimeout(animHook, 350);
 }
 
-// ── HOOK ANIMATION (named so playAgain can call it) ────────
+// ── HOOK ANIMATION ─────────────────────────────────────────
 function animHook() {
-  const ids = ['hl0','hl1','hl2','hl3','hl4','hl5'];
-  ids.forEach((id,i) =>
-    setTimeout(() => document.getElementById(id).classList.add('in'), 350 + i*700));
-  setTimeout(() =>
-    document.getElementById('btn-begin').classList.add('in'), 350 + ids.length*700 + 250);
+  ['fl0','fl1','fl2'].forEach((id,i) =>
+    setTimeout(()=>document.getElementById(id).classList.add('in'), 400+i*700));
+  setTimeout(() => {
+    const btn=document.getElementById('btn-begin');
+    btn.style.opacity='1';
+  }, 400+3*700+200);
 }
 
 // ── BOOT ───────────────────────────────────────────────────
-runStarfield();
 animHook();
 </script>
 </body>
