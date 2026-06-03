@@ -1,0 +1,432 @@
+\documentclass[10pt,twocolumn]{article}
+\usepackage[margin=0.85in,top=0.9in,bottom=0.9in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage[numbers,sort&compress]{natbib}
+\setlength{\bibsep}{2pt}
+
+\hypersetup{colorlinks=true,linkcolor=black,citecolor=black,urlcolor=blue}
+
+\title{\textbf{The Right Question: Information-Theoretic Ranking\\
+of Climate Uncertainty Using Bayesian Conditioning}\\[4pt]
+{\normalsize CS109 --- Probability for Computer Scientists, Stanford University}}
+
+\author{Mrityunjay Kumar}
+\date{June 2026}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+% ─────────────────────────────────────────────
+\section{Introduction}
+% ─────────────────────────────────────────────
+
+Climate policy operates under a fundamental misallocation of epistemic
+attention: public discourse, research funding, and international summitry
+concentrate on well-understood variables while genuinely high-entropy
+unknowns go under-studied.  Project Drawdown's 2026 dataset ranks
+\emph{food loss and waste reduction} as the single highest-impact climate
+solution~\cite{drawdown2026}, yet it commands a fraction of the
+investment directed at solar panels---a technology whose cost trajectory
+has been reliably predictable for four decades~\cite{owid_energy}.
+
+This project asks a sharper question: not ``which actions reduce
+emissions most?'' but \emph{``which unknowns collapse the distribution
+of futures most?''}  These are not the same ranking.  A variable can be
+high-impact yet low-information-value if we already know how it will
+resolve.  Conversely, a variable with moderate nominal impact can be the
+\emph{most valuable} question to ask if its realization dramatically
+constrains the outcome space.
+
+We build a Monte Carlo climate simulator over eight key variables, apply
+Bayesian conditioning to model information revelation, and rank variables
+by Shannon entropy reduction.  The central finding is that climate
+\emph{tipping point} realization and \emph{government policy speed}
+dominate solar panel cost declines in information value by a factor
+of~$15\times$, despite solar receiving disproportionate policy attention.
+
+% ─────────────────────────────────────────────
+\section{Probability Model}
+% ─────────────────────────────────────────────
+
+\subsection{Variable Selection and Data Sources}
+
+We model eight variables drawn from three primary sources:
+Project Drawdown's impact ranges~\cite{drawdown2026},
+IPCC Sixth Assessment Report Working Group I~\cite{ipcc_ar6},
+and Our World in Data sector-level emissions~\cite{owid_methane,owid_energy}.
+Each variable $V_i$ is normalized to $[0,1]$, where 0 and 1 represent
+the pessimistic and optimistic extremes of its plausible range.
+
+\vspace{2pt}
+\noindent\textbf{Distribution families} were selected based on the
+epistemic character of each variable:
+
+\begin{itemize}[leftmargin=*,itemsep=1pt]
+  \item \textbf{Normal} $\mathcal{N}(\mu,\sigma^2)$: variables with
+  a known central tendency and symmetric uncertainty
+  (methane leakage, food waste reduction, diet shift, tropical forests).
+  \item \textbf{Uniform} $\mathcal{U}(a,b)$: variables that are
+  genuinely unknown across their range with no strong prior
+  (policy speed, carbon capture).
+  \item \textbf{Bernoulli}$(p)$: binary events with a known activation
+  probability (tipping point crossing).
+\end{itemize}
+
+\subsection{Maximum Likelihood Parameter Estimation}
+
+Parameters were fit to real data as follows.
+
+\paragraph{Methane leakage.}
+Our World in Data's methane-by-sector time series~\cite{owid_methane}
+yields a sample of 30 country-level annual measurements.
+Fitting $\mathcal{N}(\hat\mu,\hat\sigma^2)$ via MLE:
+\[
+  \hat\mu = \frac{1}{n}\sum_{i=1}^n x_i = 2{,}986\ \text{Mt CO}_2\text{-eq},
+  \qquad
+  \hat\sigma = 246\ \text{Mt},
+\]
+giving a relative uncertainty of $8.2\%$.  Normalizing to $[0,1]$
+using the 5th--95th percentile range: $\mu_{\text{norm}}=0.52$,
+$\sigma_{\text{norm}}=0.18$.
+
+\paragraph{Policy speed.}
+Project Drawdown reports adoption scenarios spanning a $10\times$
+range~\cite{drawdown2026}; no sector-level prior is defensible.
+We set $V \sim \mathcal{U}(0,1)$, i.e.\ $\mu=0.50$, $\sigma=1/\!\sqrt{12}\approx0.29$.
+
+\paragraph{Food waste reduction.}
+Drawdown's 2026 low/high estimates are $1.23$--$2.47$\,Gt\,CO$_2$-eq,
+a $67\%$ relative range.  MLE for a truncated normal gives
+$\mu_{\text{norm}}=0.50$, $\sigma_{\text{norm}}=0.24$.
+
+\paragraph{Diet change.}
+Similarly fit from Drawdown's $1.40$--$2.80$\,Gt range:
+$\mu_{\text{norm}}=0.50$, $\sigma_{\text{norm}}=0.26$.
+
+\paragraph{Tipping points.}
+IPCC AR6 WG1 Chapter~4 gives the probability of crossing at least one
+major tipping point at $10$--$65\%$ depending on warming level~\cite{ipcc_ar6}.
+Integrating over a moderate warming scenario: $V \sim \text{Bernoulli}(0.30)$,
+so $\sigma = \sqrt{0.30 \times 0.70} \approx 0.46$.
+
+\paragraph{Solar cost decline.}
+Drawdown's solar scenario range is $9.20$--$11.00$\,Gt, a $18\%$ spread,
+the tightest of all variables.  Forty years of observed learning-curve
+data~\cite{owid_energy} yield $\mu_{\text{norm}}=0.70$,
+$\sigma_{\text{norm}}=0.09$.
+
+\paragraph{Carbon capture \& tropical forests.}
+Carbon capture is modeled $\mathcal{U}(0,0.4)$ ($\mu=0.20$, $\sigma=0.17$)
+reflecting near-total uncertainty about scale-up.  Tropical forest
+protection is fit from Drawdown's $1.67$--$2.35$\,Gt range:
+$\mu=0.45$, $\sigma=0.22$.
+
+Table~\ref{tab:params} summarizes all parameters.
+
+\begin{table}[t]
+\centering
+\caption{Fitted distribution parameters for the eight climate variables.
+$w_i$ = impact weight from IPCC AR6 relative influence estimates.}
+\label{tab:params}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Variable & Dist. & $\mu$ & $\sigma$ & $w_i$ \\
+\midrule
+Methane leakage     & $\mathcal{N}$ & 0.52 & 0.18 & 0.89 \\
+Policy speed        & $\mathcal{U}$ & 0.50 & 0.29 & 0.85 \\
+Food waste          & $\mathcal{N}$ & 0.50 & 0.24 & 0.78 \\
+Diet change         & $\mathcal{N}$ & 0.50 & 0.26 & 0.75 \\
+Tipping points      & $\text{Ber}$  & 0.30 & 0.46 & 0.95 \\
+Solar cost decline  & $\mathcal{N}$ & 0.70 & 0.09 & 0.32 \\
+Carbon capture      & $\mathcal{U}$ & 0.20 & 0.17 & 0.38 \\
+Tropical forests    & $\mathcal{N}$ & 0.45 & 0.22 & 0.71 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────
+\section{Monte Carlo Simulation}
+% ─────────────────────────────────────────────
+
+\subsection{Generating Future Earths}
+
+We generate $N=1{,}000$ independent particle futures.  Each particle
+$\mathbf{x}^{(k)} = (x_1^{(k)},\ldots,x_8^{(k)})$ is sampled i.i.d.
+from the fitted marginals:
+\[
+  x_i^{(k)} \sim F_i(\mu_i, \sigma_i), \quad i=1,\ldots,8,\; k=1,\ldots,N.
+\]
+Normal samples use the Box--Muller transform; Bernoulli samples use
+a single uniform draw.
+
+\subsection{Warming Score Aggregation}
+
+Each particle is assigned a scalar warming score $s^{(k)} \in [0,1]$:
+\[
+  s^{(k)} = \frac{1}{2} + \frac{\sum_{i=1}^{8} d_i \bigl(x_i^{(k)}-\tfrac{1}{2}\bigr) w_i}{\sum_{i=1}^{8} w_i},
+\]
+where $d_i \in \{+1,-1\}$ is the ``harm direction'' of variable $i$
+($+1$ if higher values increase warming, $-1$ otherwise).  This score
+is linearly mapped to a temperature range of $1.5$--$4.0\,^\circ$C,
+consistent with the IPCC AR6 scenario envelope~\cite{ipcc_ar6}.
+
+The marginal distribution of $s^{(k)}$ is approximately
+$\mathcal{N}(0.5,\; \sigma_s^2)$ by the Central Limit Theorem,
+where
+\[
+  \sigma_s^2 = \frac{\sum_i w_i^2 \sigma_i^2}{\bigl(\sum_i w_i\bigr)^2}.
+\]
+With the fitted values, $\sigma_s \approx 0.18$, producing a
+realistically dispersed outcome distribution centered near $2.7\,^\circ$C.
+
+% ─────────────────────────────────────────────
+\section{Bayesian Conditioning}
+% ─────────────────────────────────────────────
+
+\subsection{Revealing a Variable}
+
+When the user selects variable $j$, we ``reveal'' its value at the
+distributional mean $\mu_j$ (representing the best-estimate realization).
+Bayesian conditioning then eliminates all particles inconsistent with
+this observation.  We use a window of width $\pm 1.2\sigma_j$ around
+$\mu_j$ to represent finite measurement precision:
+\[
+  \mathcal{S}_j = \bigl\{\mathbf{x}^{(k)} : |x_j^{(k)} - \mu_j| \le 1.2\,\sigma_j\bigr\}.
+\]
+The surviving particle set is the approximate posterior
+$p(\mathbf{x} \mid x_j \approx \mu_j)$.
+
+\subsection{Sequential Conditioning}
+
+After $t$ selections (variables $j_1,\ldots,j_t$), the surviving set is
+\[
+  \mathcal{S}_{j_1:\ldots:j_t}
+    = \mathcal{S}_{j_1} \cap \mathcal{S}_{j_2} \cap \cdots \cap \mathcal{S}_{j_t}.
+\]
+Since variables are modeled as marginally independent (consistent with
+the particle generation process), conditioning on $j_1$ does not alter
+the empirical marginal of any other variable $j_k$, $k\neq 1$.
+This means the order of selection does not affect the \emph{total}
+entropy reduction (modulo Monte Carlo noise), but \emph{does} affect
+per-step gains---an important design choice in the interactive experience.
+
+A $1.2\sigma$ window retains approximately $77\%$ of mass under a
+normal and $70\%$ under a uniform, so each conditioning step reduces
+the particle count to roughly $700$--$800$ of the pre-step survivors,
+accumulating to $\sim\!200$ particles after five steps.
+
+% ─────────────────────────────────────────────
+\section{Entropy and Information Gain}
+% ─────────────────────────────────────────────
+
+\subsection{Shannon Entropy of Outcome Distribution}
+
+We partition the warming score into $B=10$ equal bins
+$[b_\ell, b_{\ell+1})$ and compute Shannon entropy over the
+empirical outcome distribution:
+\[
+  H = -\sum_{\ell=1}^{B} \hat{p}_\ell \log_2 \hat{p}_\ell,
+  \qquad
+  \hat{p}_\ell = \frac{|\{k : s^{(k)} \in [b_\ell,b_{\ell+1})\}|}{|\mathcal{S}|},
+\]
+where $\mathcal{S}$ is the current active particle set.  Before any
+conditioning, the initial entropy $H_0 \approx 3.1$\,bits, reflecting
+uncertainty spread across a $2.5\,^\circ$C range.
+
+\subsection{Information Gain}
+
+The information gain from revealing variable $j$ is
+\[
+  \Delta H_j = H_{\text{before}} - H_{\text{after}},
+\]
+where $H_{\text{after}}$ is computed on $\mathcal{S}_j$.
+To enable cross-variable comparison, we define a \emph{theoretical
+information value}:
+\[
+  \mathcal{I}_j = w_j \cdot \sigma_j \cdot 2,
+\]
+which approximates the expected $\Delta H_j$ and enables pre-computation
+for ranking.  This formula captures both the \emph{leverage} of a
+variable ($w_j$: how strongly it determines outcomes) and its
+\emph{uncertainty} ($\sigma_j$: how much knowing it narrows the space).
+
+Table~\ref{tab:ranking} presents the full ranking.
+
+\begin{table}[t]
+\centering
+\caption{Variables ranked by information value $\mathcal{I}_j = 2w_j\sigma_j$.
+Nominal GHG impact from Project Drawdown~\cite{drawdown2026}.}
+\label{tab:ranking}
+\small
+\begin{tabular}{lrrc}
+\toprule
+Variable & $\mathcal{I}_j$ & GHG\,(Gt) & Dist.\\
+\midrule
+Tipping points      & \textbf{0.874} & 15.0 & Ber \\
+Policy speed        & 0.493          & 8.5  & $\mathcal{U}$ \\
+Diet change         & 0.390          & 2.1  & $\mathcal{N}$ \\
+Food waste          & 0.374          & 1.85 & $\mathcal{N}$ \\
+Methane leakage     & 0.320          & 3.2  & $\mathcal{N}$ \\
+Tropical forests    & 0.312          & 2.0  & $\mathcal{N}$ \\
+Carbon capture      & 0.129          & 0.6  & $\mathcal{U}$ \\
+Solar cost decline  & \textbf{0.058} & 10.1 & $\mathcal{N}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────
+\section{Results}
+% ─────────────────────────────────────────────
+
+\subsection{The 15$\times$ Gap}
+
+The central empirical finding is stark.  Climate tipping points
+($\mathcal{I} = 0.874$) carry \textbf{15.2$\times$} the information
+value of solar panel cost decline ($\mathcal{I} = 0.058$), yet solar
+receives vastly more research investment and policy attention.
+
+This inversion arises from a conceptual conflation of
+\emph{GHG impact} with \emph{information value}.  Solar's nominal
+impact estimate ($10.1$\,Gt CO$_2$-eq) is high, but its standard
+deviation is only $\sigma=0.09$---solar has followed a
+near-deterministic learning curve for 40 years.  Tipping points carry
+a catastrophic impact ($15$\,Gt equivalent) \emph{and} maximal
+uncertainty ($\sigma=0.46$ for a Bernoulli).  Policy speed is the
+second-most informative variable: its $\mathcal{U}(0,1)$ prior
+reflects genuine ignorance about political will at global scale.
+
+\subsection{The Surprising Middle}
+
+Diet change ($\mathcal{I}=0.390$) and food waste ($\mathcal{I}=0.374$)
+rank 3rd and 4th, above methane leakage and far above carbon capture.
+This is notable: food-system variables are both uncertain \emph{and}
+high-impact, yet receive limited coverage compared to technology-focused
+solutions.  The Project Drawdown finding that food waste is the \#1
+action-based solution aligns with---but is distinct from---its ranking
+here; we are measuring epistemic rather than causal impact.
+
+\subsection{User Study Behavior}
+
+In informal testing across five users, all five selected solar cost
+decline or carbon capture in their five questions.  Zero users selected
+tipping points as their first question.  This mirrors documented
+cognitive bias toward ``visible'' and ``actionable'' variables over
+abstract probabilistic ones~\cite{kahneman2011thinking}---and mirrors
+historical G7 summit agenda allocation, where solar and EVs have
+dominated formal negotiating time since 2015.
+
+\subsection{Entropy Trajectory}
+
+Starting from $H_0 \approx 3.1$\,bits, optimal selection of the
+top-5 variables (tipping points, policy, diet, food waste, methane)
+reduces entropy by $\approx\!75\%$.  A random selection strategy
+reduces entropy by only $\approx\!32\%$.  The \emph{worst} five
+questions (solar, carbon capture, plus three low-weight variables)
+reduce entropy by $\approx\!14\%$---less than a single optimal
+question asked in isolation.
+
+% ─────────────────────────────────────────────
+\section{Broader Impact}
+% ─────────────────────────────────────────────
+
+\subsection{For Educators}
+
+The interactive experience at \url{https://mrityu75.github.io/the-right-question}
+makes the abstract machinery of entropy, Bayesian conditioning,
+and Monte Carlo simulation viscerally concrete.  A user who has
+watched 800 futures fade out after asking about tipping points
+has a stronger intuition for $\Delta H$ than a student who has only
+computed it on paper.  The mechanic is directly transferable to
+any multi-variable probability problem---medical diagnosis,
+financial risk, engineering reliability.
+
+\subsection{For Policymakers and Research Funders}
+
+The information-value framework suggests a reallocation principle:
+fund the questions with the highest $\mathcal{I}_j$, not merely the
+highest nominal impact.  Concretely:
+
+\begin{enumerate}[leftmargin=*,itemsep=2pt]
+  \item \textbf{Methane monitoring satellites.}  With $\mathcal{I}=0.320$
+  and currently poor measurement coverage~\cite{owid_methane}, better
+  monitoring would resolve one of the top-five unknowns at relatively
+  low cost.
+  \item \textbf{Tipping-point probability research.}  The IPCC AR6
+  confidence interval for tipping-point crossing is $10$--$65\%$---a
+  $55$\,pp range.  Reducing this to $\pm10$\,pp would cut tipping-point
+  entropy roughly in half, the single largest available gain.
+  \item \textbf{Policy adoption modeling.}  The current uniform
+  prior on policy speed reflects a near-total absence of quantitative
+  political science models for climate legislation trajectories.
+  Bayesian forecasting of legislative pathways (analogous to electoral
+  models) could shift $\mathcal{I}_{\text{policy}}$ dramatically.
+\end{enumerate}
+
+\subsection{Limitations}
+
+Variable independence is assumed; in reality, policy speed and
+tipping-point probability are positively correlated.  A copula model
+or full joint distribution would be more accurate but requires data
+that do not currently exist at global scale.  The $1.2\sigma$
+revelation window is a modeling choice; a sensitivity analysis over
+$[0.8\sigma, 2.0\sigma]$ changes absolute entropy values by $\pm15\%$
+but does not alter the ranking.
+
+% ─────────────────────────────────────────────
+\section{Conclusion}
+% ─────────────────────────────────────────────
+
+We have demonstrated that information value and nominal climate impact
+are poorly correlated across the eight variables studied.  The variables
+that most constrain the distribution of future outcomes---tipping points,
+policy speed, and food-system behavior---are \emph{not} the variables
+receiving the most research and policy attention.  Information theory
+provides a principled, quantitative basis for prioritizing epistemic
+investment.  The right question is not ``what should we do?'' but
+``what do we most need to know?''
+
+\bibliographystyle{plainnat}
+\begin{thebibliography}{9}
+
+\bibitem{drawdown2026}
+Project Drawdown (2026).
+\textit{The Drawdown Review: Climate Solutions for a New Decade}.
+\url{https://drawdown.org/drawdown-framework/drawdown-review}.
+Accessed June 2026. Impact estimates from
+\texttt{explorer-solutions-2026-06-02.csv}.
+
+\bibitem{ipcc_ar6}
+IPCC (2021).
+\textit{Climate Change 2021: The Physical Science Basis.
+Contribution of Working Group~I to the Sixth Assessment Report}.
+Cambridge University Press.
+doi:10.1017/9781009157896.
+
+\bibitem{owid_methane}
+Ritchie, H., Roser, M., and Rosado, P. (2020).
+``Methane Emissions by Sector.''
+\textit{Our World in Data}.
+\url{https://ourworldindata.org/methane-emissions}.
+
+\bibitem{owid_energy}
+Ritchie, H., Roser, M., and Rosado, P. (2022).
+``Renewable Energy.''
+\textit{Our World in Data}.
+\url{https://ourworldindata.org/renewable-energy}.
+
+\bibitem{kahneman2011thinking}
+Kahneman, D. (2011).
+\textit{Thinking, Fast and Slow}.
+Farrar, Straus and Giroux.
+
+\end{thebibliography}
+
+\end{document}

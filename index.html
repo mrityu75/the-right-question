@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Right Question — Climate Uncertainty</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07070f;--surface:#0f0f1a;--border:rgba(255,255,255,0.07);
+  --text:#e2e2f0;--muted:#7070a0;
+  --accent:#6366f1;--accent2:#818cf8;--glow:rgba(99,102,241,0.25);
+  --red:#ef4444;--yellow:#eab308;--blue:#3b82f6;--green:#22c55e;--orange:#f97316;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);overflow:hidden;
+  font-family:'Georgia',serif}
+
+/* SCREENS */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.7s ease}
+.screen.active{opacity:1;pointer-events:all}
+
+/* ── SCREEN 1: HOOK ── */
+#s-hook{padding:2rem}
+.hook-wrap{text-align:center;max-width:680px;width:100%}
+.hl{font-size:clamp(1rem,2.8vw,1.5rem);line-height:1.75;margin-bottom:0.9rem;
+  opacity:0;transform:translateY(14px);transition:opacity 0.9s ease,transform 0.9s ease}
+.hl.in{opacity:1;transform:translateY(0)}
+.hl-plain{color:var(--text)}
+.hl-fact{color:#4ade80;font-weight:bold;font-size:clamp(1.1rem,3.2vw,1.7rem)}
+.hl-bridge{color:var(--muted);font-style:italic}
+.hl-question{color:var(--text)}
+.hl-cta{color:var(--accent2);font-size:clamp(1.2rem,3.5vw,1.9rem);font-weight:bold}
+.btn-begin{margin-top:2.2rem;padding:0.85rem 3rem;
+  background:var(--accent);color:#fff;border:none;border-radius:6px;
+  font:inherit;font-size:1.05rem;letter-spacing:0.07em;cursor:pointer;
+  opacity:0;transform:translateY(8px);
+  transition:opacity 0.7s ease,transform 0.7s ease,background 0.2s,box-shadow 0.2s;
+  display:inline-block}
+.btn-begin.in{opacity:1;transform:translateY(0)}
+.btn-begin:hover{background:#7c3aed;box-shadow:0 0 28px var(--glow)}
+
+/* ── SCREEN 2: GALAXY ── */
+#s-galaxy{justify-content:flex-start;overflow:hidden}
+#gcanvas{position:absolute;inset:0;width:100%;height:100%}
+.gUI{position:relative;z-index:10;width:100%;height:100%;
+  display:flex;flex-direction:column;pointer-events:none}
+
+.e-bar-wrap{padding:0.9rem 1.4rem 0.4rem}
+.e-labels{font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--muted);display:flex;justify-content:space-between;margin-bottom:0.35rem}
+.e-labels b{color:var(--text);font-weight:normal}
+.e-track{height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden}
+.e-fill{height:100%;width:100%;border-radius:2px;
+  background:linear-gradient(90deg,var(--blue),var(--accent),var(--orange),var(--red));
+  transition:width 1s cubic-bezier(.4,0,.2,1)}
+.g-caption{text-align:center;padding:0.2rem 1rem}
+.g-caption h2{font-size:clamp(0.75rem,1.8vw,0.95rem);color:var(--muted);
+  font-weight:normal;letter-spacing:0.06em}
+#dot-count{font-size:0.65rem;color:rgba(255,255,255,0.25);margin-top:0.15rem}
+.picks-badge{position:absolute;top:0.7rem;right:1.3rem;z-index:20;
+  font-size:0.7rem;color:var(--muted);letter-spacing:0.08em;pointer-events:none}
+.picks-badge span{color:var(--accent2);font-size:1rem;font-weight:bold}
+.legend{position:absolute;top:4rem;left:1.1rem;z-index:20;
+  display:flex;flex-direction:column;gap:0.28rem;opacity:0.65;pointer-events:none}
+.li{display:flex;align-items:center;gap:0.38rem;
+  font-size:0.6rem;color:var(--muted);letter-spacing:0.05em}
+.ld{width:6px;height:6px;border-radius:50%}
+
+/* toast */
+.toast{position:absolute;top:50%;left:50%;z-index:60;
+  transform:translate(-50%,-50%) scale(0.88);
+  background:rgba(10,10,20,0.97);border:1px solid rgba(255,255,255,0.1);
+  border-radius:14px;padding:1.6rem 1.8rem;text-align:center;
+  max-width:380px;width:92%;
+  opacity:0;transition:opacity 0.4s ease,transform 0.4s ease;
+  backdrop-filter:blur(16px);pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:all}
+.toast-var{font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--accent2);margin-bottom:0.6rem}
+.toast-gain{font-size:3rem;font-weight:bold;line-height:1;color:var(--text)}
+.toast-gain-sub{font-size:0.72rem;color:var(--muted);letter-spacing:0.08em;
+  text-transform:uppercase;margin-bottom:1rem}
+.toast-hr{border:none;border-top:1px solid var(--border);margin:0.8rem 0}
+.toast-txt{font-size:0.82rem;color:var(--text);font-style:italic;
+  line-height:1.55;margin-bottom:1.2rem}
+.btn-cont{padding:0.55rem 1.6rem;background:transparent;
+  border:1px solid var(--accent);color:var(--accent2);border-radius:5px;
+  font:inherit;font-size:0.82rem;cursor:pointer;transition:background 0.2s;pointer-events:all}
+.btn-cont:hover{background:var(--glow)}
+
+/* cards */
+.cards-area{position:absolute;bottom:0;left:0;right:0;z-index:20;
+  background:linear-gradient(to top,rgba(7,7,15,0.99) 65%,transparent);
+  padding:0.6rem 0.8rem 0.7rem;pointer-events:all}
+.cards-scroll{display:flex;gap:0.55rem;overflow-x:auto;padding-bottom:0.25rem;
+  scrollbar-width:thin;scrollbar-color:var(--accent) transparent}
+.cards-scroll::-webkit-scrollbar{height:3px}
+.cards-scroll::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
+.qcard{flex-shrink:0;width:155px;background:rgba(15,15,26,0.92);
+  border:1px solid var(--border);border-radius:9px;padding:0.65rem 0.7rem;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:border-color 0.2s,transform 0.2s,opacity 0.35s}
+.qcard::after{content:'';position:absolute;inset:0;
+  background:var(--cc,var(--accent));opacity:0;transition:opacity 0.2s}
+.qcard:hover::after{opacity:0.07}
+.qcard:hover{border-color:rgba(255,255,255,0.18);transform:translateY(-3px)}
+.qcard.done{opacity:0.38;cursor:default;transform:none!important;
+  border-color:var(--cc,var(--accent))}
+.qcard.done::after{opacity:0.09}
+.cdot{width:7px;height:7px;border-radius:50%;margin-bottom:0.38rem}
+.cname{font-size:0.68rem;font-weight:bold;color:var(--text);
+  margin-bottom:0.28rem;line-height:1.25}
+.cq{font-size:0.6rem;color:var(--muted);line-height:1.38}
+.ccheck{position:absolute;top:0.45rem;right:0.5rem;font-size:0.68rem;
+  opacity:0;transition:opacity 0.3s;color:var(--green)}
+.qcard.done .ccheck{opacity:1}
+.btn-results{display:block;margin:0.55rem auto 0;padding:0.65rem 1.9rem;
+  background:var(--accent);color:#fff;border:none;border-radius:5px;
+  font:inherit;font-size:0.88rem;letter-spacing:0.05em;cursor:pointer;
+  opacity:0;transform:translateY(5px);
+  transition:opacity 0.5s ease,transform 0.5s ease,background 0.2s;pointer-events:none}
+.btn-results.show{opacity:1;transform:translateY(0);pointer-events:all}
+.btn-results:hover{background:#7c3aed}
+
+/* ── SCREEN 4: REVEAL ── */
+#s-reveal{overflow-y:auto;overflow-x:hidden;justify-content:flex-start;
+  padding:2rem 1rem 3rem;-webkit-overflow-scrolling:touch}
+.rev-inner{max-width:720px;margin:0 auto;width:100%}
+.rev-head{text-align:center;margin-bottom:1.8rem}
+.rev-score{font-size:clamp(3rem,10vw,5rem);font-weight:bold;
+  background:linear-gradient(135deg,var(--accent2),var(--blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;line-height:1}
+.rev-score-sub{font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--muted);margin-top:0.3rem}
+.rev-headline{font-size:clamp(0.95rem,2.5vw,1.2rem);color:var(--text);
+  margin-top:0.9rem;line-height:1.6;font-style:italic}
+.rank-table{margin:0.5rem 0 1.5rem}
+.rrow{display:flex;align-items:center;gap:0.7rem;padding:0.75rem 0.8rem;
+  border-radius:9px;margin-bottom:0.38rem;
+  background:rgba(255,255,255,0.02);border:1px solid var(--border);
+  opacity:0;transform:translateX(-14px);
+  transition:opacity 0.5s ease,transform 0.5s ease}
+.rrow.in{opacity:1;transform:translateX(0)}
+.rrow.picked{border-color:rgba(34,197,94,0.28);background:rgba(34,197,94,0.04)}
+.rrow.missed{border-color:rgba(239,68,68,0.24);background:rgba(239,68,68,0.04)}
+.rnum{font-size:1rem;font-weight:bold;color:var(--muted);
+  width:1.4rem;text-align:center;flex-shrink:0}
+.rdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.rinfo{flex:1;min-width:0}
+.rname{font-size:0.82rem;font-weight:bold;color:var(--text)}
+.rsurprise{font-size:0.68rem;color:var(--muted);margin-top:0.18rem;line-height:1.4}
+.rbar-wrap{width:75px;flex-shrink:0}
+.rbar-track{height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden}
+.rbar-fill{height:100%;border-radius:2px;width:0;transition:width 1.1s ease}
+.rbadge{font-size:0.6rem;padding:0.14rem 0.38rem;border-radius:3px;
+  letter-spacing:0.05em;flex-shrink:0;white-space:nowrap}
+.rbadge-yes{background:rgba(34,197,94,0.15);color:#4ade80;
+  border:1px solid rgba(34,197,94,0.25)}
+.rbadge-miss{background:rgba(239,68,68,0.12);color:#f87171;
+  border:1px solid rgba(239,68,68,0.2)}
+.summit-q{margin:1.2rem 0;padding:1.1rem 1.4rem;
+  border-left:3px solid var(--accent);background:rgba(99,102,241,0.06);
+  border-radius:0 9px 9px 0;font-style:italic;color:var(--text);
+  font-size:0.9rem;line-height:1.6}
+.btn-truth{display:block;margin:1.2rem auto;padding:0.75rem 2.4rem;
+  background:transparent;border:1px solid var(--accent);color:var(--accent2);
+  border-radius:5px;font:inherit;font-size:0.92rem;letter-spacing:0.05em;
+  cursor:pointer;transition:background 0.2s,box-shadow 0.2s}
+.btn-truth:hover{background:var(--glow);box-shadow:0 0 20px var(--glow)}
+
+/* ── SCREEN 5: TRUTH ── */
+#s-truth{padding:2rem;overflow-y:auto}
+.truth-wrap{text-align:center;max-width:580px;width:100%}
+.tl{font-size:clamp(1rem,2.6vw,1.3rem);line-height:1.75;margin-bottom:1.2rem;
+  opacity:0;transform:translateY(10px);
+  transition:opacity 1s ease,transform 1s ease;color:var(--text)}
+.tl.in{opacity:1;transform:translateY(0)}
+.tl em{color:var(--accent2);font-style:normal}
+.tl strong{color:#4ade80}
+.t-method{margin-top:2rem;opacity:0;transition:opacity 1s ease}
+.t-method.in{opacity:1}
+.t-method a{color:var(--muted);font-size:0.75rem;letter-spacing:0.1em;
+  text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.08);
+  transition:color 0.2s}
+.t-method a:hover{color:var(--text)}
+
+@media(max-width:480px){
+  .qcard{width:138px}
+  .rbar-wrap{display:none}
+  .rev-inner{padding:0}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 1 — HOOK
+═══════════════════════════════════════ -->
+<div class="screen active" id="s-hook">
+  <div class="hook-wrap">
+    <div class="hl hl-plain"   id="hl0">Scientists ranked every climate solution by impact.</div>
+    <div class="hl hl-plain"   id="hl1">The #1 solution isn't solar. It isn't EVs.</div>
+    <div class="hl hl-fact"    id="hl2">It's reducing food waste.</div>
+    <div class="hl hl-bridge"  id="hl3">But that's about actions. This is about something deeper.</div>
+    <div class="hl hl-question"id="hl4">Which climate unknowns actually determine the future?</div>
+    <div class="hl hl-cta"     id="hl5">You have 5 questions. Use them wisely.</div>
+    <button class="btn-begin" id="btn-begin" onclick="startGalaxy()">Begin</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 2/3 — GALAXY + COLLAPSE
+═══════════════════════════════════════ -->
+<div class="screen" id="s-galaxy">
+  <canvas id="gcanvas"></canvas>
+  <div class="gUI">
+    <div class="e-bar-wrap">
+      <div class="e-labels">
+        <span>UNCERTAINTY REMAINING</span>
+        <b id="e-pct">100%</b>
+      </div>
+      <div class="e-track"><div class="e-fill" id="e-fill"></div></div>
+    </div>
+    <div class="g-caption">
+      <h2>Each dot is one possible future Earth</h2>
+      <div id="dot-count">1,000 futures &nbsp;·&nbsp; colored by warming outcome</div>
+    </div>
+    <div class="legend">
+      <div class="li"><div class="ld" style="background:#3b82f6"></div>&lt; 2°C</div>
+      <div class="li"><div class="ld" style="background:#eab308"></div>2 – 3°C</div>
+      <div class="li"><div class="ld" style="background:#ef4444"></div>&gt; 3°C</div>
+    </div>
+    <div class="picks-badge"><span id="picks-n">0</span> / 5 questions used</div>
+  </div>
+
+  <div class="toast" id="toast">
+    <div class="toast-var" id="t-varname"></div>
+    <div class="toast-gain" id="t-gain">0%</div>
+    <div class="toast-gain-sub">of total uncertainty revealed</div>
+    <hr class="toast-hr">
+    <div class="toast-txt" id="t-txt"></div>
+    <button class="btn-cont" onclick="dismissToast()">Continue →</button>
+  </div>
+
+  <div class="cards-area">
+    <div class="cards-scroll" id="cards-scroll"></div>
+    <button class="btn-results" id="btn-results" onclick="showReveal()">
+      See What You Missed →
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 4 — REVEAL
+═══════════════════════════════════════ -->
+<div class="screen" id="s-reveal">
+  <div class="rev-inner">
+    <div class="rev-head">
+      <div class="rev-score" id="rev-score">0%</div>
+      <div class="rev-score-sub">of climate uncertainty uncovered</div>
+      <div class="rev-headline" id="rev-headline"></div>
+    </div>
+    <div class="rank-table" id="rank-table"></div>
+    <div class="summit-q" id="summit-q"></div>
+    <button class="btn-truth" onclick="showTruth()">The Bigger Truth →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     SCREEN 5 — BIGGER TRUTH
+═══════════════════════════════════════ -->
+<div class="screen" id="s-truth">
+  <div class="truth-wrap">
+    <div class="tl" id="tl0">We don't lack <em>solutions</em> to climate change.</div>
+    <div class="tl" id="tl1">We lack the <em>right questions</em>.</div>
+    <div class="tl" id="tl2">Every dollar spent on well-understood problems<br>is a dollar not spent reducing genuine uncertainty.</div>
+    <div class="tl" id="tl3">Information theory is precise about this:<br>the most valuable question is the one that <em>collapses the most futures</em>.</div>
+    <div class="tl" id="tl4">The climate summit argued about solar subsidies.<br>The methane leak went <strong>unmeasured</strong>.</div>
+    <div class="tl" id="tl5">This is a CS109 project.<br>But it describes a <em>real problem</em>.</div>
+    <div class="t-method" id="t-method">
+      <a href="#" onclick="showMethodology();return false">View Methodology &amp; Sources ↗</a>
+    </div>
+  </div>
+</div>
+
+<script src="viz/variables.js"></script>
+<script>
+'use strict';
+
+// ── CONSTANTS ────────────────────────────────────────────────
+const N_P = 1000, N_Q = 5, N_B = 10;
+
+const HARM = {
+  methane_leakage:+1, policy_speed:-1,  food_waste:-1,
+  diet_change:-1,     tipping_points:+1, solar_cost:-1,
+  carbon_capture:-1,  tropical_forests:-1
+};
+
+// ── STATE ────────────────────────────────────────────────────
+let pts=[], initH=0, curH=0, pickedIds=[], totalGain=0;
+let animId, canvas, ctx, toastCb=null;
+
+// ── DISTRIBUTIONS ────────────────────────────────────────────
+function randn(){
+  let u=0,v=0;
+  while(!u)u=Math.random();while(!v)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+function sample(v){
+  let x;
+  if(v.dist==='normal')       x=v.mean+v.std*randn();
+  else if(v.dist==='uniform') x=(v.mean-v.std*Math.sqrt(3))+Math.random()*2*v.std*Math.sqrt(3);
+  else                        x=Math.random()<v.mean?1:0;
+  return Math.max(0,Math.min(1,x));
+}
+
+// ── PARTICLES ────────────────────────────────────────────────
+function buildPts(){
+  const W=CLIMATE_VARIABLES.reduce((s,v)=>s+v.impact_weight,0);
+  pts=Array.from({length:N_P},()=>{
+    const vals={};
+    let ws=0;
+    CLIMATE_VARIABLES.forEach(v=>{
+      const x=sample(v);
+      vals[v.id]=x;
+      ws+=HARM[v.id]*(x-0.5)*v.impact_weight;
+    });
+    const score=Math.max(0,Math.min(1,0.5+ws/W));
+    // galaxy layout: Gaussian cluster with slight tilt
+    const a=Math.random()*2*Math.PI;
+    const r=Math.abs(randn())*0.30+0.02;
+    const nx=0.5+Math.cos(a)*r+(Math.random()-0.5)*0.10;
+    const ny=0.5+Math.sin(a)*r*0.68+(Math.random()-0.5)*0.09;
+    return{
+      vals,score,
+      rgb:scoreRGB(score),
+      x:Math.max(0.01,Math.min(0.99,nx)),
+      y:Math.max(0.01,Math.min(0.99,ny)),
+      vx:(Math.random()-0.5)*0.00022,
+      vy:(Math.random()-0.5)*0.00022,
+      r:1.3+Math.random()*1.5,
+      op:1,tOp:1
+    };
+  });
+}
+
+function scoreRGB(t){
+  const lp=(a,b,t)=>a+(b-a)*t;
+  let r,g,b;
+  if(t<0.4){const s=t/0.4;
+    r=lp(59,234,s);g=lp(130,179,s);b=lp(246,8,s);
+  }else if(t<0.75){const s=(t-0.4)/0.35;
+    r=lp(234,249,s);g=lp(179,115,s);b=lp(8,22,s);
+  }else{const s=(t-0.75)/0.25;
+    r=lp(249,239,s);g=lp(115,68,s);b=lp(22,68,s);
+  }
+  return[r|0,g|0,b|0];
+}
+
+// ── ENTROPY ──────────────────────────────────────────────────
+function entropy(arr){
+  const live=arr.filter(p=>p.tOp>0.05);
+  if(!live.length)return 0;
+  const bins=new Array(N_B).fill(0);
+  live.forEach(p=>bins[Math.min(N_B-1,(p.score*N_B)|0)]++);
+  const n=live.length;
+  return bins.reduce((H,c)=>c?H-c/n*Math.log2(c/n):H,0);
+}
+
+// ── CANVAS ───────────────────────────────────────────────────
+function setupCanvas(){
+  canvas=document.getElementById('gcanvas');
+  ctx=canvas.getContext('2d');
+  onResize();
+  window.addEventListener('resize',onResize);
+}
+function onResize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+
+function frame(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const W=canvas.width,H=canvas.height;
+  const TOP=90,BOT=165,dH=H-TOP-BOT;
+
+  for(const p of pts){
+    p.op+=(p.tOp-p.op)*0.055;
+    if(p.op<0.008)continue;
+    p.x=Math.max(0,Math.min(1,p.x+p.vx));
+    p.y=Math.max(0,Math.min(1,p.y+p.vy));
+    if(p.x<=0||p.x>=1)p.vx*=-1;
+    if(p.y<=0||p.y>=1)p.vy*=-1;
+    const px=p.x*W, py=TOP+p.y*dH;
+    const[r,g,b]=p.rgb, op=p.op;
+    // glow
+    const gr=ctx.createRadialGradient(px,py,0,px,py,p.r*5);
+    gr.addColorStop(0,  `rgba(${r},${g},${b},${op*0.6})`);
+    gr.addColorStop(0.3,`rgba(${r},${g},${b},${op*0.22})`);
+    gr.addColorStop(1,  `rgba(${r},${g},${b},0)`);
+    ctx.beginPath();ctx.arc(px,py,p.r*5,0,Math.PI*2);
+    ctx.fillStyle=gr;ctx.fill();
+    // core
+    ctx.beginPath();ctx.arc(px,py,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${r},${g},${b},${Math.min(1,op*1.4)})`;ctx.fill();
+  }
+  animId=requestAnimationFrame(frame);
+}
+
+// ── CARDS ────────────────────────────────────────────────────
+function buildCards(){
+  const sc=document.getElementById('cards-scroll');
+  sc.innerHTML='';
+  CLIMATE_VARIABLES.forEach(v=>{
+    const d=document.createElement('div');
+    d.className='qcard';d.id='card-'+v.id;
+    d.style.setProperty('--cc',v.color);
+    d.innerHTML=
+      `<div class="cdot" style="background:${v.color};box-shadow:0 0 8px ${v.color}88"></div>
+       <div class="cname">${v.name}</div>
+       <div class="cq">${v.question}</div>
+       <div class="ccheck">✓</div>`;
+    d.onclick=()=>pickVar(v);
+    sc.appendChild(d);
+  });
+}
+
+// ── PICK ─────────────────────────────────────────────────────
+function pickVar(v){
+  if(pickedIds.includes(v.id)||pickedIds.length>=N_Q)return;
+  pickedIds.push(v.id);
+  document.getElementById('card-'+v.id).classList.add('done');
+  document.getElementById('picks-n').textContent=pickedIds.length;
+
+  const lo=Math.max(0,v.mean-1.2*v.std);
+  const hi=Math.min(1,v.mean+1.2*v.std);
+  pts.forEach(p=>{if(p.tOp>0.05&&(p.vals[v.id]<lo||p.vals[v.id]>hi))p.tOp=0;});
+
+  const nH=entropy(pts);
+  const g=Math.max(0,curH-nH);
+  const gPct=Math.round(g/initH*100);
+  curH=nH;totalGain+=g;
+
+  const rem=Math.max(0,Math.round(curH/initH*100));
+  document.getElementById('e-pct').textContent=rem+'%';
+  document.getElementById('e-fill').style.width=rem+'%';
+  const alive=pts.filter(p=>p.tOp>0.05).length;
+  document.getElementById('dot-count').textContent=
+    alive.toLocaleString()+' futures remain';
+
+  showToast(v,gPct,()=>{
+    if(pickedIds.length>=N_Q)
+      document.getElementById('btn-results').classList.add('show');
+  });
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+function showToast(v,pct,cb){
+  toastCb=cb;
+  document.getElementById('t-varname').textContent=v.name;
+  document.getElementById('t-gain').textContent=pct+'%';
+  document.getElementById('t-txt').textContent=v.surprise;
+  document.getElementById('toast').classList.add('show');
+}
+function dismissToast(){
+  document.getElementById('toast').classList.remove('show');
+  if(toastCb){toastCb();toastCb=null;}
+}
+
+// ── SCREEN TRANSITIONS ───────────────────────────────────────
+function go(from,to,cb){
+  document.getElementById(from).classList.remove('active');
+  setTimeout(()=>{
+    document.getElementById(to).classList.add('active');
+    if(cb)cb();
+  },550);
+}
+
+// ── START GALAXY ─────────────────────────────────────────────
+function startGalaxy(){
+  go('s-hook','s-galaxy',()=>{
+    setupCanvas();buildPts();buildCards();
+    initH=entropy(pts);curH=initH;
+    frame();
+  });
+}
+
+// ── REVEAL ───────────────────────────────────────────────────
+function showReveal(){
+  cancelAnimationFrame(animId);
+  const totalPct=Math.round(totalGain/initH*100);
+  const sorted=[...CLIMATE_VARIABLES].sort((a,b)=>b.info_gain-a.info_gain);
+  const maxG=sorted[0].info_gain;
+  const topPicked=sorted.slice(0,4).filter(v=>pickedIds.includes(v.id)).length;
+  const botPicked=sorted.slice(4).filter(v=>pickedIds.includes(v.id)).length;
+
+  document.getElementById('rev-score').textContent=totalPct+'%';
+  const hs=[
+    'You found the signal in the noise. Rare.',
+    'You found two of the critical unknowns. One slipped past.',
+    'You found one. Two of the critical questions went unasked.',
+    'You focused on the visible. The real uncertainty was elsewhere.'
+  ];
+  document.getElementById('rev-headline').textContent=hs[Math.max(0,3-topPicked)];
+
+  const tbl=document.getElementById('rank-table');
+  tbl.innerHTML='';
+  sorted.forEach((v,i)=>{
+    const ip=pickedIds.includes(v.id);
+    const im=i<4&&!ip;
+    const pct=Math.round(v.info_gain/maxG*100);
+    const row=document.createElement('div');
+    row.className='rrow'+(ip?' picked':'')+(im?' missed':'');
+    row.style.transitionDelay=`${i*0.08}s`;
+    let badge=ip?'<span class="rbadge rbadge-yes">✓ asked</span>'
+              :im?'<span class="rbadge rbadge-miss">missed</span>':'';
+    row.innerHTML=
+      `<div class="rnum">#${i+1}</div>
+       <div class="rdot" style="background:${v.color};box-shadow:0 0 6px ${v.color}88"></div>
+       <div class="rinfo">
+         <div class="rname">${v.name}</div>
+         <div class="rsurprise">${v.surprise}</div>
+       </div>
+       <div class="rbar-wrap">
+         <div class="rbar-track">
+           <div class="rbar-fill" style="background:${v.color}" data-w="${pct}"></div>
+         </div>
+       </div>${badge}`;
+    tbl.appendChild(row);
+  });
+
+  let q;
+  if(botPicked>0)
+    q=`You spent ${botPicked} question${botPicked>1?'s':''} on the bottom half. So did the last G7 climate summit.`;
+  else if(topPicked>=3)
+    q='You prioritized uncertainty over optics. That\'s rarer than you think.';
+  else
+    q='The last G7 climate summit spent more time on solar subsidies than methane monitoring. The highest-uncertainty variables rarely make headlines.';
+  document.getElementById('summit-q').textContent=q;
+
+  go('s-galaxy','s-reveal',()=>{
+    setTimeout(()=>{
+      document.querySelectorAll('.rrow').forEach((row,i)=>{
+        setTimeout(()=>{
+          row.classList.add('in');
+          const bar=row.querySelector('.rbar-fill');
+          if(bar)bar.style.width=bar.dataset.w+'%';
+        },i*90);
+      });
+    },300);
+  });
+}
+
+// ── TRUTH ────────────────────────────────────────────────────
+function showTruth(){
+  go('s-reveal','s-truth',()=>{
+    ['tl0','tl1','tl2','tl3','tl4','tl5'].forEach((id,i)=>
+      setTimeout(()=>document.getElementById(id).classList.add('in'),500+i*720));
+    setTimeout(()=>document.getElementById('t-method').classList.add('in'),500+6*720);
+  });
+}
+
+// ── METHODOLOGY ──────────────────────────────────────────────
+function showMethodology(){
+  alert([
+    '─ METHODOLOGY ──────────────────────────────────',
+    '',
+    'Monte Carlo Simulation',
+    '  1,000 particles sampled from 8 climate variable',
+    '  distributions (normal, uniform, Bernoulli).',
+    '',
+    'Data Sources',
+    '  • Project Drawdown 2026 (impact ranges)',
+    '  • IPCC AR6 WG1 SPM (tipping point probabilities)',
+    '  • Our World in Data (methane, electricity mix)',
+    '  • Global Carbon Budget 2025 v0.6',
+    '',
+    'Warming Score',
+    '  s = 0.5 + Σ(harm × (val−0.5) × weight) / Σweights',
+    '  Mapped to 1.5°C – 4.0°C.',
+    '',
+    'Entropy  H = −Σ pᵢ log₂ pᵢ  (10 warming bins)',
+    '',
+    'Information Gain  ΔH = H_before − H_after',
+    '  Variable revealed at mean ± 1.2σ window.',
+    '',
+    'Variable Info-Value  = impact_weight × std × 2',
+    '',
+    '────────────────────────────────────────────────',
+    'CS109 · Stanford · Probability for Computer Scientists',
+  ].join('\n'));
+}
+
+// ── HOOK ANIMATION ───────────────────────────────────────────
+(function(){
+  const ids=['hl0','hl1','hl2','hl3','hl4','hl5'];
+  ids.forEach((id,i)=>
+    setTimeout(()=>document.getElementById(id).classList.add('in'),350+i*680));
+  setTimeout(()=>
+    document.getElementById('btn-begin').classList.add('in'),350+ids.length*680+250);
+})();
+</script>
+</body>
+</html>
