@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,500;9..144,0,600;9..144,1,400;9..144,1,500&family=Spline+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js" crossorigin="anonymous"></script>
 <style>
 /* ── TOKENS ──────────────────────────────────────────────── */
 :root{
@@ -394,11 +396,12 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
   color:var(--ink);margin-bottom:10px;line-height:1.25}
 .concept-desc{font-size:15px;line-height:1.68;color:var(--muted);
   margin-bottom:16px;flex:1}
-.formula-block{font-family:'Menlo','Courier New',monospace;font-size:16px;
-  color:#c8dfff;background:rgba(74,168,255,.07);
-  border:1px solid rgba(74,168,255,.18);border-radius:10px;
-  padding:18px 22px;overflow-x:auto;white-space:nowrap;letter-spacing:.05em;
-  line-height:1.75;margin-top:auto}
+.formula-block{
+  background:rgba(74,168,255,.07);border:1px solid rgba(74,168,255,.18);
+  border-radius:10px;padding:18px 22px;overflow-x:auto;
+  margin-top:auto;text-align:center;font-size:16px;color:#c8dfff}
+/* let KaTeX inherit our light-blue color */
+.formula-block .katex{color:inherit}
 
 /* 2-column data sources */
 .sources-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
@@ -622,42 +625,42 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
         <div class="concept-card-lbl">01 &nbsp;·&nbsp; Monte Carlo</div>
         <div class="concept-name">Generating 1,000 future Earths</div>
         <p class="concept-desc">Independent samples drawn from 8 variable distributions. Each particle is one possible timeline — fully independent from the others.</p>
-        <div class="formula-block">x<sub>i</sub><sup>(k)</sup> ~ F<sub>i</sub>(μ<sub>i</sub>, σ<sub>i</sub>), &nbsp;k = 1…1000</div>
+        <div class="formula-block" data-tex="x_i^{(k)} \sim F_i(\mu_i,\,\sigma_i), \quad k = 1\ldots 1000">x<sub>i</sub><sup>(k)</sup> ~ F<sub>i</sub>(μ<sub>i</sub>, σ<sub>i</sub>), &nbsp;k = 1…1000</div>
       </div>
 
       <div class="concept-card">
         <div class="concept-card-lbl">02 &nbsp;·&nbsp; Distribution Families</div>
         <div class="concept-name">Normal, Uniform, Bernoulli</div>
         <p class="concept-desc">Three families capture different uncertainty types. Normal for measurable variables with central tendency. Uniform for genuinely unknown ranges. Bernoulli for binary outcomes like tipping points.</p>
-        <div class="formula-block">Normal(μ,σ²) &nbsp;·&nbsp; Uniform(a,b) &nbsp;·&nbsp; Bernoulli(p)</div>
+        <div class="formula-block" data-tex="\mathcal{N}(\mu,\sigma^2) \;\cdot\; \mathrm{Uniform}(a,b) \;\cdot\; \mathrm{Bernoulli}(p)">Normal(μ,σ²) · Uniform(a,b) · Bernoulli(p)</div>
       </div>
 
       <div class="concept-card">
         <div class="concept-card-lbl">03 &nbsp;·&nbsp; MLE</div>
         <div class="concept-name">Fitting parameters from real data</div>
         <p class="concept-desc">Distribution parameters fit to real datasets — methane satellite measurements, Project Drawdown impact ranges, IPCC AR6 confidence intervals. The model only uses numbers that exist.</p>
-        <div class="formula-block">μ̂ = (1/n)Σx<sub>i</sub> &nbsp;·&nbsp; σ̂² = (1/n)Σ(x<sub>i</sub>−μ̂)²</div>
+        <div class="formula-block" data-tex="\hat{\mu} = \dfrac{1}{n}\sum x_i \qquad \hat{\sigma}^2 = \dfrac{1}{n}\sum(x_i - \hat{\mu})^2">μ̂ = (1/n)Σx<sub>i</sub> · σ̂² = (1/n)Σ(x<sub>i</sub>−μ̂)²</div>
       </div>
 
       <div class="concept-card">
         <div class="concept-card-lbl">04 &nbsp;·&nbsp; Bayesian Conditioning</div>
         <div class="concept-name">Eliminating inconsistent futures</div>
         <p class="concept-desc">Selecting a question reveals its value at μ ± 1.2σ. Every particle outside that window is eliminated — the posterior collapses around what you just learned.</p>
-        <div class="formula-block">S<sub>j</sub> = { x : |x<sub>j</sub> − μ<sub>j</sub>| ≤ 1.2σ<sub>j</sub> }</div>
+        <div class="formula-block" data-tex="S_j = \bigl\{\, x : |x_j - \mu_j| \leq 1.2\,\sigma_j \,\bigr\}">S<sub>j</sub> = { x : |x<sub>j</sub> − μ<sub>j</sub>| ≤ 1.2σ<sub>j</sub> }</div>
       </div>
 
       <div class="concept-card">
         <div class="concept-card-lbl">05 &nbsp;·&nbsp; Shannon Entropy</div>
         <div class="concept-name">Measuring remaining uncertainty</div>
         <p class="concept-desc">How spread out is the warming outcome distribution? Computed over 10 temperature bins from 1.5°C to 4.0°C. More uniform = higher entropy = more uncertainty remaining.</p>
-        <div class="formula-block">H = −Σ p<sub>i</sub> log<sub>2</sub>(p<sub>i</sub>)</div>
+        <div class="formula-block" data-tex="H = -\sum_i p_i \log_2 p_i">H = −Σ p<sub>i</sub> log<sub>2</sub>(p<sub>i</sub>)</div>
       </div>
 
       <div class="concept-card">
         <div class="concept-card-lbl">06 &nbsp;·&nbsp; Information Gain</div>
         <div class="concept-name">Ranking what matters most</div>
         <p class="concept-desc">How much does one question reduce uncertainty? Variables ranked by I = 2·w·σ — the product of climate impact weight and distributional spread. Tipping points rank 15× above solar.</p>
-        <div class="formula-block">ΔH = H<sub>before</sub> − H<sub>after</sub> &nbsp;·&nbsp; I = 2·w·σ</div>
+        <div class="formula-block" data-tex="\Delta H = H_{\text{before}} - H_{\text{after}}, \qquad \mathcal{I} = 2w\sigma">ΔH = H<sub>before</sub> − H<sub>after</sub> · I = 2·w·σ</div>
       </div>
 
     </div>
@@ -1086,7 +1089,13 @@ function showCollapse(v, pct, cb) {
 
   const grid = document.getElementById('choices-grid');
   grid.innerHTML = '';
-  CHOICES[v.id].forEach(opt => {
+  // Fisher-Yates shuffle on a copy so correct position is random each time
+  const opts = [...CHOICES[v.id]];
+  for (let i = opts.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [opts[i], opts[j]] = [opts[j], opts[i]];
+  }
+  opts.forEach(opt => {
     const btn = document.createElement('button');
     btn.className       = 'col-choice-btn';
     btn.textContent     = opt.text;
@@ -1297,9 +1306,22 @@ function showTruth() {
   setTimeout(()=>document.getElementById('truth-footer').classList.add('in'), 400+ids.length*680);
 }
 
+function renderFormulas() {
+  if (typeof katex === 'undefined') return; // CDN not yet loaded — fallback HTML shows
+  document.querySelectorAll('.formula-block[data-tex]').forEach(el => {
+    if (el.dataset.rendered) return; // idempotent
+    try {
+      katex.render(el.dataset.tex, el, { displayMode: true, throwOnError: false });
+      el.dataset.rendered = '1';
+    } catch(e) { /* keep Unicode fallback */ }
+  });
+}
+
 function showMethod() {
   navHistory.push('s-truth');
   goScreen('s-method');
+  // KaTeX is deferred — will be loaded well before user reaches this screen
+  setTimeout(renderFormulas, 60);
 }
 
 // ── PLAY AGAIN ─────────────────────────────────────────────
