@@ -1242,7 +1242,7 @@ function startGalaxy() {
 }
 
 async function showReveal() {
-  recordPlay();
+  await recordPlay();
   cancelAnimationFrame(galaxyAnimId);
   galaxyAnimId = null;
   navHistory.push('s-galaxy');
