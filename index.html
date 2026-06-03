@@ -152,11 +152,13 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);
 #s-collapse{
   position:fixed;inset:0;z-index:100;
   background:#000;
-  display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:flex-start;justify-content:center;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
   opacity:0;pointer-events:none;transition:opacity 0.5s ease}
 #s-collapse.show{opacity:1;pointer-events:all}
 
-.col-inner{text-align:center;max-width:620px;width:92%;padding:2rem}
+.col-inner{text-align:center;max-width:580px;width:92%;
+  padding:clamp(1.5rem,5vh,3rem) 0 2rem;margin:auto}
 .col-phase{opacity:0;transform:translateY(18px);
   transition:opacity 0.7s ease,transform 0.7s ease}
 .col-phase.in{opacity:1;transform:translateY(0)}
@@ -185,6 +187,35 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);
   border-radius:6px;font-family:var(--sans);font-size:0.85rem;
   cursor:pointer;transition:border-color 0.2s,color 0.2s}
 .btn-col-cont:hover{border-color:rgba(255,255,255,0.5);color:#fff}
+
+/* choice buttons */
+.col-choices-prompt{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:0.75rem;font-family:var(--sans)}
+.choices-grid{display:flex;flex-direction:column;gap:0.55rem;width:100%}
+.choice-btn{padding:0.85rem 1.2rem;background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.1);border-radius:9px;
+  color:rgba(255,255,255,0.8);font-family:var(--sans);
+  font-size:clamp(0.78rem,2.2vw,0.9rem);text-align:left;cursor:pointer;
+  transition:background 0.14s,border-color 0.14s,transform 0.12s,
+    opacity 0.45s,color 0.3s;line-height:1.4;width:100%}
+.choice-btn:hover:not(:disabled){
+  background:rgba(255,255,255,0.09);border-color:rgba(255,255,255,0.22);
+  transform:translateX(5px)}
+.choice-btn:disabled{cursor:default}
+/* post-pick states */
+.choice-btn.st-right{border-color:rgba(74,222,128,0.6);
+  background:rgba(74,222,128,0.13);color:#4ade80;font-weight:600}
+.choice-btn.st-wrong{border-color:rgba(248,113,113,0.5);
+  background:rgba(248,113,113,0.09);color:#f87171}
+.choice-btn.st-correct{border-color:rgba(74,222,128,0.45);
+  background:rgba(74,222,128,0.08);color:#86efac}
+.choice-btn.st-dim{opacity:0.16;border-color:rgba(255,255,255,0.04);
+  color:rgba(255,255,255,0.25)}
+/* verdict */
+.col-verdict-text{font-family:var(--serif);
+  font-size:clamp(1.9rem,6vw,2.9rem);line-height:1;margin-bottom:0.2rem}
+.verdict-right{color:#4ade80;text-shadow:0 0 35px rgba(74,222,128,0.55)}
+.verdict-wrong{color:#f87171;text-shadow:0 0 35px rgba(248,113,113,0.45)}
 
 /* ═══════════════════════════════════════════════════════════
    SCREEN 4 — REVEAL
@@ -399,15 +430,32 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);
 ═══════════════════════════════════════════════════════ -->
 <div id="s-collapse">
   <div class="col-inner">
-    <div class="col-phase" id="cp-varlabel"><div class="col-var-label" id="cp-varname-txt"></div></div>
-    <div class="col-phase" id="cp-q"><div class="col-question" id="cp-q-txt"></div></div>
-    <div class="col-phase" id="cp-the-ans"><div class="col-the-answer">THE ANSWER</div></div>
-    <div class="col-phase" id="cp-ansval"><div class="col-ans-val" id="cp-ans-val-txt"></div></div>
-    <div class="col-phase" id="cp-ansctx"><div class="col-ans-ctx" id="cp-ans-ctx-txt"></div></div>
+    <!-- Phase 1: variable name + question -->
+    <div class="col-phase" id="cp-header">
+      <div class="col-var-label" id="cp-varname-txt"></div>
+      <div class="col-question" id="cp-q-txt"></div>
+    </div>
+    <!-- Phase 2: three choices — user MUST pick before seeing answer -->
+    <div class="col-phase" id="cp-choices">
+      <div class="col-choices-prompt">Your prediction:</div>
+      <div class="choices-grid" id="choices-grid"></div>
+    </div>
+    <!-- Phase 3: right / wrong verdict -->
+    <div class="col-phase" id="cp-verdict">
+      <div class="col-verdict-text" id="cp-verdict-txt"></div>
+    </div>
+    <!-- Phase 4: actual answer -->
+    <div class="col-phase" id="cp-answer-reveal">
+      <div class="col-the-answer">THE ANSWER</div>
+      <div class="col-ans-val" id="cp-ans-val-txt"></div>
+      <div class="col-ans-ctx" id="cp-ans-ctx-txt"></div>
+    </div>
+    <!-- Phase 5: collapse stat -->
     <div class="col-phase" id="cp-stat">
       <div class="col-stat-num" id="cp-stat-num-txt"></div>
       <div class="col-stat-sub">of all possible futures&ensp;collapsed</div>
     </div>
+    <!-- Phase 6: continue -->
     <div class="col-phase col-btn" id="cp-btn">
       <button class="btn-col-cont" onclick="dismissCollapse()">Continue →</button>
     </div>
@@ -594,6 +642,51 @@ const REVEALS = {
     'Despite $50B invested, no carbon capture technology has been demonstrated at meaningful scale.'],
   tropical_forests: ['Deforestation slowed — but didn\'t stop',
     'Political instability in Brazil, Indonesia, and Congo offset a decade of international conservation funding.']
+};
+
+// ── MULTIPLE-CHOICE OPTIONS ────────────────────────────────
+// One entry per variable. Exactly one option has correct:true.
+const CHOICES = {
+  methane_leakage: [
+    { text: "Roughly what companies self-report",        correct: false },
+    { text: "About 2× higher than officially reported",  correct: true  },
+    { text: "Over 5× higher — a hidden catastrophe",     correct: false }
+  ],
+  policy_speed: [
+    { text: "On track — most nations meeting targets",   correct: false },
+    { text: "Slow — falling short of IPCC pathways",     correct: true  },
+    { text: "Stalled — fewer policies than a decade ago", correct: false }
+  ],
+  food_waste: [
+    { text: "Most of it — strong momentum is working",   correct: false },
+    { text: "About a third — behavior change is slow",   correct: true  },
+    { text: "Almost none — consumption keeps rising",    correct: false }
+  ],
+  diet_change: [
+    { text: "Major global shift — plant-based mainstream", correct: false },
+    { text: "Partial shift in wealthy nations only",      correct: true  },
+    { text: "No shift — meat rises with income globally", correct: false }
+  ],
+  tipping_points: [
+    { text: "Low risk — under 20% probability",          correct: false },
+    { text: "Moderate risk — 20–50% probability",        correct: true  },
+    { text: "High risk — over 50% probability",          correct: false }
+  ],
+  solar_cost: [
+    { text: "Modest decline — 20–40% cheaper by 2040",   correct: false },
+    { text: "Major decline — 60–80% cheaper by 2040",    correct: true  },
+    { text: "Revolutionary — 95%+ cheaper, near-free",   correct: false }
+  ],
+  carbon_capture: [
+    { text: "Scaling fast — already 3+ Gt/year",         correct: false },
+    { text: "Limited — under 1 Gt/year by 2040",         correct: true  },
+    { text: "Complete failure — projects abandoned",      correct: false }
+  ],
+  tropical_forests: [
+    { text: "Recovery — net gain in global forest cover",     correct: false },
+    { text: "Partial loss — slowing but not stopped",         correct: true  },
+    { text: "Catastrophic — over half of tropics deforested", correct: false }
+  ]
 };
 
 // ── STATE ──────────────────────────────────────────────────
@@ -796,29 +889,74 @@ function pickVar(v) {
 function showCollapse(v, pct, cb) {
   colDone = cb;
 
-  // Compute color for the answer value
-  const el = document.getElementById('s-collapse');
-  document.getElementById('cp-varname-txt').textContent  = v.name;
-  document.getElementById('cp-q-txt').textContent        = v.question;
-  document.getElementById('cp-ans-val-txt').textContent  = REVEALS[v.id][0];
-  document.getElementById('cp-ans-ctx-txt').textContent  = REVEALS[v.id][1];
-  document.getElementById('cp-stat-num-txt').textContent = pct + '%';
+  // Populate question
+  document.getElementById('cp-varname-txt').textContent = v.name;
+  document.getElementById('cp-q-txt').textContent       = v.question;
 
-  // Color the answer value in the variable's own color
-  document.getElementById('cp-ans-val-txt').style.color = v.color;
+  // Build choice buttons fresh
+  const grid = document.getElementById('choices-grid');
+  grid.innerHTML = '';
+  CHOICES[v.id].forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className   = 'choice-btn';
+    btn.textContent = opt.text;
+    btn.dataset.correct = opt.correct ? '1' : '0';
+    btn.onclick = () => pickChoice(btn, opt.correct, v, pct);
+    grid.appendChild(btn);
+  });
 
   // Reset all phases
   document.querySelectorAll('#s-collapse .col-phase').forEach(p => p.classList.remove('in'));
 
-  el.classList.add('show');
+  document.getElementById('s-collapse').classList.add('show');
 
-  setTimeout(() => document.getElementById('cp-varlabel').classList.add('in'),  300);
-  setTimeout(() => document.getElementById('cp-q').classList.add('in'),          700);
-  setTimeout(() => document.getElementById('cp-the-ans').classList.add('in'),  1600);
-  setTimeout(() => document.getElementById('cp-ansval').classList.add('in'),    2000);
-  setTimeout(() => document.getElementById('cp-ansctx').classList.add('in'),   2500);
-  setTimeout(() => document.getElementById('cp-stat').classList.add('in'),     3400);
-  setTimeout(() => document.getElementById('cp-btn').classList.add('in'),      4100);
+  // Phase 1: question fades in, then choices
+  setTimeout(() => document.getElementById('cp-header').classList.add('in'),   300);
+  setTimeout(() => document.getElementById('cp-choices').classList.add('in'),  950);
+}
+
+// Called when user picks one of the three choices
+function pickChoice(pickedBtn, isCorrect, v, pct) {
+  // Lock all buttons immediately so no double-picks
+  const allBtns = document.querySelectorAll('.choice-btn');
+  allBtns.forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.correct === '1') {
+      // Always reveal the correct answer
+      btn.classList.add(btn === pickedBtn && isCorrect ? 'st-right' : 'st-correct');
+    } else if (btn === pickedBtn) {
+      btn.classList.add('st-wrong');   // picked the wrong one
+    } else {
+      btn.classList.add('st-dim');     // unchosen wrong option
+    }
+  });
+
+  // Phase 3: verdict
+  setTimeout(() => {
+    const vTxt = document.getElementById('cp-verdict-txt');
+    vTxt.textContent = isCorrect ? '✓  Correct' : '✗  Wrong';
+    vTxt.className   = 'col-verdict-text ' + (isCorrect ? 'verdict-right' : 'verdict-wrong');
+    document.getElementById('cp-verdict').classList.add('in');
+  }, 450);
+
+  // Phase 4: real answer
+  setTimeout(() => {
+    document.getElementById('cp-ans-val-txt').textContent  = REVEALS[v.id][0];
+    document.getElementById('cp-ans-ctx-txt').textContent  = REVEALS[v.id][1];
+    document.getElementById('cp-ans-val-txt').style.color  = v.color;
+    document.getElementById('cp-answer-reveal').classList.add('in');
+  }, 1350);
+
+  // Phase 5: collapse stat
+  setTimeout(() => {
+    document.getElementById('cp-stat-num-txt').textContent = pct + '%';
+    document.getElementById('cp-stat').classList.add('in');
+  }, 2300);
+
+  // Phase 6: continue button
+  setTimeout(() => {
+    document.getElementById('cp-btn').classList.add('in');
+  }, 3100);
 }
 
 function dismissCollapse() {
