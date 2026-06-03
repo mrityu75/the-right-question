@@ -574,6 +574,7 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
     <div class="callout" id="callout-box" style="opacity:0;transition:opacity .5s">
       <div class="callout-text" id="callout-text"></div>
     </div>
+    <div id="live-stat" style="display:none;text-align:center;color:var(--muted);font-size:0.85rem;margin-top:12px;font-style:italic;opacity:0.8"></div>
     <div style="margin-top:6px">
       <button class="btn primary" onclick="showTruth()">
         The bigger truth &nbsp;<span class="arrow">→</span>
@@ -805,6 +806,37 @@ const CHOICES = {
 
 // ── STATE ──────────────────────────────────────────────────
 let pts=[], initH=0, curH=0, pickedIds=[], totalGain=0;
+
+// ── Anonymous play tracking (jsonbin) ──────────────────────
+const JSONBIN_ID  = '6a1fc833f5f4af5e29b0c5f9';
+const JSONBIN_KEY = '$2a$10$KoGcP3ikfQLKPMz/NCmBWusbcK0Lu64XVbbSQaKIV1eeOe2Jy.G86';
+let trackStat = null;
+
+async function recordPlay() {
+  try {
+    const readRes = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`,
+      { headers: { 'X-Access-Key': JSONBIN_KEY } });
+    const data = (await readRes.json()).record || { plays: [], counts: {} };
+    if (!Array.isArray(data.plays)) data.plays = [];
+
+    data.plays.push({ picks: [...pickedIds], t: Date.now() });
+
+    const counts = {};
+    data.plays.forEach(p => (p.picks||[]).forEach(id => counts[id]=(counts[id]||0)+1));
+    data.counts = counts;
+
+    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
+      method: 'PUT',
+      headers: { 'Content-Type':'application/json', 'X-Access-Key': JSONBIN_KEY },
+      body: JSON.stringify(data)
+    });
+
+    const total = data.plays.length;
+    const solarPct = Math.round(100*(counts['solar_cost']||0)/total);
+    const tipPct   = Math.round(100*(counts['tipping_points']||0)/total);
+    trackStat = { total, solarPct, tipPct };
+  } catch(e) { trackStat = null; }
+}
 let galaxyAnimId, canvas, ctx, colDone=null, resizeH=null;
 let pickSnapshot=null;
 let navHistory=[]; // for ← Back navigation
@@ -1209,7 +1241,8 @@ function startGalaxy() {
   setTimeout(galaxyFrame, 80); // let canvas resize settle first
 }
 
-function showReveal() {
+async function showReveal() {
+  recordPlay();
   cancelAnimationFrame(galaxyAnimId);
   galaxyAnimId = null;
   navHistory.push('s-galaxy');
@@ -1267,6 +1300,13 @@ function showReveal() {
   }
   document.getElementById('callout-text').innerHTML=calloutHTML;
   callout.className='callout'+(isGood?' good':'');
+
+  // Live stat from other players
+  const statEl = document.getElementById('live-stat');
+  if (statEl && trackStat && trackStat.total > 1) {
+    statEl.textContent = 'Of ' + trackStat.total + ' players so far, ' + trackStat.solarPct + '% asked about solar energy — only ' + trackStat.tipPct + '% asked about tipping points.';
+    statEl.style.display = 'block';
+  }
 
   goScreen('s-reveal');
 
