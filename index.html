@@ -188,6 +188,15 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);
   cursor:pointer;transition:border-color 0.2s,color 0.2s}
 .btn-col-cont:hover{border-color:rgba(255,255,255,0.5);color:#fff}
 
+/* back link */
+.col-back-btn{position:fixed;top:1.1rem;left:1.4rem;z-index:102;
+  background:transparent;border:none;
+  color:rgba(255,255,255,0.28);font-family:var(--sans);
+  font-size:0.75rem;letter-spacing:0.04em;
+  cursor:pointer;padding:0.3rem 0;transition:color 0.2s}
+.col-back-btn:hover{color:rgba(255,255,255,0.65)}
+.col-back-btn.hidden{opacity:0;pointer-events:none;transition:opacity 0.2s}
+
 /* choice buttons */
 .col-choices-prompt{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;
   color:var(--muted);margin-bottom:0.75rem;font-family:var(--sans)}
@@ -429,6 +438,7 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);
      COLLAPSE OVERLAY — dramatic fullscreen moment
 ═══════════════════════════════════════════════════════ -->
 <div id="s-collapse">
+  <button class="col-back-btn" id="col-back-btn" onclick="goBackToGalaxy()">← Back to galaxy</button>
   <div class="col-inner">
     <!-- Phase 1: variable name + question -->
     <div class="col-phase" id="cp-header">
@@ -645,53 +655,62 @@ const REVEALS = {
 };
 
 // ── MULTIPLE-CHOICE OPTIONS ────────────────────────────────
-// One entry per variable. Exactly one option has correct:true.
+// Four options per variable, spanning a realistic range. One correct:true.
 const CHOICES = {
   methane_leakage: [
-    { text: "Roughly what companies self-report",        correct: false },
-    { text: "About 2× higher than officially reported",  correct: true  },
-    { text: "Over 5× higher — a hidden catastrophe",     correct: false }
+    { text: "Accurate — companies report correctly",              correct: false },
+    { text: "Slightly high — ~30–50% above reports",              correct: false },
+    { text: "About 2× higher than officially reported",           correct: true  },
+    { text: "5× or more — a catastrophic hidden crisis",          correct: false }
   ],
   policy_speed: [
-    { text: "On track — most nations meeting targets",   correct: false },
-    { text: "Slow — falling short of IPCC pathways",     correct: true  },
-    { text: "Stalled — fewer policies than a decade ago", correct: false }
+    { text: "Accelerating — most nations ahead of targets",       correct: false },
+    { text: "On track — roughly meeting IPCC commitments",        correct: false },
+    { text: "Slow — falling short of required pathways",          correct: true  },
+    { text: "Stalled — net policy regression since 2020",         correct: false }
   ],
   food_waste: [
-    { text: "Most of it — strong momentum is working",   correct: false },
-    { text: "About a third — behavior change is slow",   correct: true  },
-    { text: "Almost none — consumption keeps rising",    correct: false }
+    { text: "Over 75% eliminated — major systemic change",        correct: false },
+    { text: "About half — solid progress but gaps remain",        correct: false },
+    { text: "About a third — behavior change is hard",            correct: true  },
+    { text: "Under 10% — consumption outpaces all efficiency",    correct: false }
   ],
   diet_change: [
-    { text: "Major global shift — plant-based mainstream", correct: false },
-    { text: "Partial shift in wealthy nations only",      correct: true  },
-    { text: "No shift — meat rises with income globally", correct: false }
+    { text: "Major global shift — plant-based fully mainstream",  correct: false },
+    { text: "Significant in developed nations, spreading fast",   correct: false },
+    { text: "Partial — wealthy nations only, not globally",       correct: true  },
+    { text: "No meaningful shift — meat demand rises with GDP",   correct: false }
   ],
   tipping_points: [
-    { text: "Low risk — under 20% probability",          correct: false },
-    { text: "Moderate risk — 20–50% probability",        correct: true  },
-    { text: "High risk — over 50% probability",          correct: false }
+    { text: "Very low risk — under 10% probability",              correct: false },
+    { text: "Low risk — roughly 10–20% probability",              correct: false },
+    { text: "Moderate risk — 20–50% probability",                 correct: true  },
+    { text: "High risk — more likely than not (>50%)",            correct: false }
   ],
   solar_cost: [
-    { text: "Modest decline — 20–40% cheaper by 2040",   correct: false },
-    { text: "Major decline — 60–80% cheaper by 2040",    correct: true  },
-    { text: "Revolutionary — 95%+ cheaper, near-free",   correct: false }
+    { text: "Minimal decline — under 20% cheaper by 2040",        correct: false },
+    { text: "Modest — 20–40% cheaper by 2040",                    correct: false },
+    { text: "Major decline — 60–80% cheaper by 2040",             correct: true  },
+    { text: "Revolutionary — 95%+ cheaper, approaching free",     correct: false }
   ],
   carbon_capture: [
-    { text: "Scaling fast — already 3+ Gt/year",         correct: false },
-    { text: "Limited — under 1 Gt/year by 2040",         correct: true  },
-    { text: "Complete failure — projects abandoned",      correct: false }
+    { text: "Transformative — 10+ Gt removed per year",           correct: false },
+    { text: "Significant — 3–5 Gt removed per year by 2040",      correct: false },
+    { text: "Limited — under 1 Gt per year by 2040",              correct: true  },
+    { text: "Negligible — most projects quietly abandoned",        correct: false }
   ],
   tropical_forests: [
-    { text: "Recovery — net gain in global forest cover",     correct: false },
-    { text: "Partial loss — slowing but not stopped",         correct: true  },
-    { text: "Catastrophic — over half of tropics deforested", correct: false }
+    { text: "Recovery — net gain in global forest cover",         correct: false },
+    { text: "Roughly stable — losses offset by reforestation",    correct: false },
+    { text: "Partial loss — deforestation slowed but continues",  correct: true  },
+    { text: "Catastrophic — over half the tropics deforested",    correct: false }
   ]
 };
 
 // ── STATE ──────────────────────────────────────────────────
 let pts=[], initH=0, curH=0, pickedIds=[], totalGain=0;
 let galaxyAnimId, sfAnimId, canvas, ctx, colDone=null, resizeH=null;
+let pickSnapshot=null; // saved per-pick for back-navigation
 
 // ── STARFIELD ──────────────────────────────────────────────
 const stars = Array.from({length:220}, () => ({
@@ -854,31 +873,44 @@ function buildCards() {
 // ── PICK VARIABLE ──────────────────────────────────────────
 function pickVar(v) {
   if (pickedIds.includes(v.id) || pickedIds.length >= N_Q) return;
-  pickedIds.push(v.id);
-  document.getElementById('card-'+v.id).classList.add('done');
-  const rem = N_Q - pickedIds.length;
-  document.getElementById('q-rem').textContent = rem;
 
-  // Filter particles
+  // Snapshot state BEFORE any mutation so goBackToGalaxy can undo
+  const prevCurH = curH, prevTotalGain = totalGain;
+  const fadedIndices = [];
+
+  // Filter particles, recording which ones we fade
   const lo = Math.max(0, v.mean - 1.2*v.std);
   const hi = Math.min(1, v.mean + 1.2*v.std);
-  pts.forEach(p => { if (p.tOp>0.05 && (p.vals[v.id]<lo || p.vals[v.id]>hi)) p.tOp=0; });
+  pts.forEach((p, i) => {
+    if (p.tOp > 0.05 && (p.vals[v.id] < lo || p.vals[v.id] > hi)) {
+      fadedIndices.push(i);
+      p.tOp = 0;
+    }
+  });
 
-  // Entropy
-  const nH    = entropy(pts);
-  const g     = Math.max(0, curH - nH);
-  const gPct  = Math.round(g / initH * 100);
-  curH     = nH;
-  totalGain += g;
+  // Entropy + gain
+  const nH   = entropy(pts);
+  const g    = Math.max(0, prevCurH - nH);
+  const gPct = Math.round(g / initH * 100);
+  curH      = nH;
+  totalGain = prevTotalGain + g;
 
-  // Update UI
+  // Commit pick to UI
+  pickedIds.push(v.id);
+  document.getElementById('card-'+v.id).classList.add('done');
+  document.getElementById('q-rem').textContent = N_Q - pickedIds.length;
+
+  // Save snapshot so the back button can reverse everything above
+  pickSnapshot = { varId: v.id, prevCurH, prevTotalGain, fadedIndices };
+
+  // Update entropy bar + dot count
   const remPct = Math.max(0, Math.round(curH/initH*100));
   document.getElementById('e-pct').textContent  = remPct + '%';
   document.getElementById('e-fill').style.width = remPct + '%';
   const alive = pts.filter(p=>p.tOp>0.05).length;
   document.getElementById('dot-count').textContent = alive.toLocaleString()+' futures remain';
 
-  // Show dramatic collapse screen
+  // Open the question/prediction screen
   showCollapse(v, gPct, () => {
     if (pickedIds.length >= N_Q)
       document.getElementById('btn-results').classList.add('show');
@@ -889,45 +921,47 @@ function pickVar(v) {
 function showCollapse(v, pct, cb) {
   colDone = cb;
 
-  // Populate question
   document.getElementById('cp-varname-txt').textContent = v.name;
   document.getElementById('cp-q-txt').textContent       = v.question;
 
-  // Build choice buttons fresh
+  // Build 4 choice buttons
   const grid = document.getElementById('choices-grid');
   grid.innerHTML = '';
   CHOICES[v.id].forEach(opt => {
     const btn = document.createElement('button');
-    btn.className   = 'choice-btn';
-    btn.textContent = opt.text;
-    btn.dataset.correct = opt.correct ? '1' : '0';
+    btn.className        = 'choice-btn';
+    btn.textContent      = opt.text;
+    btn.dataset.correct  = opt.correct ? '1' : '0';
     btn.onclick = () => pickChoice(btn, opt.correct, v, pct);
     grid.appendChild(btn);
   });
 
-  // Reset all phases
+  // Reset phases and make back button visible
   document.querySelectorAll('#s-collapse .col-phase').forEach(p => p.classList.remove('in'));
+  document.getElementById('col-back-btn').classList.remove('hidden');
 
   document.getElementById('s-collapse').classList.add('show');
 
-  // Phase 1: question fades in, then choices
-  setTimeout(() => document.getElementById('cp-header').classList.add('in'),   300);
-  setTimeout(() => document.getElementById('cp-choices').classList.add('in'),  950);
+  setTimeout(() => document.getElementById('cp-header').classList.add('in'),  300);
+  setTimeout(() => document.getElementById('cp-choices').classList.add('in'), 950);
 }
 
-// Called when user picks one of the three choices
+// Called when user commits to one of the four choices
 function pickChoice(pickedBtn, isCorrect, v, pct) {
-  // Lock all buttons immediately so no double-picks
-  const allBtns = document.querySelectorAll('.choice-btn');
-  allBtns.forEach(btn => {
+  // Once a choice is made the pick is committed — hide the back link
+  document.getElementById('col-back-btn').classList.add('hidden');
+  // Snapshot no longer needed (can't go back after answering)
+  pickSnapshot = null;
+
+  // Lock + colour all buttons
+  document.querySelectorAll('.choice-btn').forEach(btn => {
     btn.disabled = true;
     if (btn.dataset.correct === '1') {
-      // Always reveal the correct answer
       btn.classList.add(btn === pickedBtn && isCorrect ? 'st-right' : 'st-correct');
     } else if (btn === pickedBtn) {
-      btn.classList.add('st-wrong');   // picked the wrong one
+      btn.classList.add('st-wrong');
     } else {
-      btn.classList.add('st-dim');     // unchosen wrong option
+      btn.classList.add('st-dim');
     }
   });
 
@@ -941,9 +975,9 @@ function pickChoice(pickedBtn, isCorrect, v, pct) {
 
   // Phase 4: real answer
   setTimeout(() => {
-    document.getElementById('cp-ans-val-txt').textContent  = REVEALS[v.id][0];
-    document.getElementById('cp-ans-ctx-txt').textContent  = REVEALS[v.id][1];
-    document.getElementById('cp-ans-val-txt').style.color  = v.color;
+    document.getElementById('cp-ans-val-txt').textContent = REVEALS[v.id][0];
+    document.getElementById('cp-ans-ctx-txt').textContent = REVEALS[v.id][1];
+    document.getElementById('cp-ans-val-txt').style.color = v.color;
     document.getElementById('cp-answer-reveal').classList.add('in');
   }, 1350);
 
@@ -954,9 +988,44 @@ function pickChoice(pickedBtn, isCorrect, v, pct) {
   }, 2300);
 
   // Phase 6: continue button
-  setTimeout(() => {
-    document.getElementById('cp-btn').classList.add('in');
-  }, 3100);
+  setTimeout(() => document.getElementById('cp-btn').classList.add('in'), 3100);
+}
+
+// ── GO BACK (before answering) ─────────────────────────────
+function goBackToGalaxy() {
+  if (!pickSnapshot) return; // already answered — shouldn't happen
+  const snap = pickSnapshot;
+  pickSnapshot = null;
+
+  // Restore faded particles (animation loop fades them back in)
+  snap.fadedIndices.forEach(i => { pts[i].tOp = 1; });
+
+  // Restore entropy bookkeeping
+  curH      = snap.prevCurH;
+  totalGain = snap.prevTotalGain;
+
+  // Undo the pick
+  pickedIds = pickedIds.filter(id => id !== snap.varId);
+  document.getElementById('card-'+snap.varId).classList.remove('done');
+  document.getElementById('q-rem').textContent = N_Q - pickedIds.length;
+
+  // Restore entropy bar
+  const remPct = Math.max(0, Math.round(curH/initH*100));
+  document.getElementById('e-pct').textContent  = remPct + '%';
+  document.getElementById('e-fill').style.width = remPct + '%';
+
+  // Restore dot count
+  const alive = pts.filter(p => p.tOp > 0.05).length;
+  document.getElementById('dot-count').textContent =
+    alive >= N_P
+      ? '1,000 futures  ·  colored by warming outcome'
+      : alive.toLocaleString() + ' futures remain';
+
+  // Ensure results button is hidden (user hasn't reached 5 picks)
+  document.getElementById('btn-results').classList.remove('show');
+
+  document.getElementById('s-collapse').classList.remove('show');
+  colDone = null;
 }
 
 function dismissCollapse() {
@@ -1108,7 +1177,7 @@ function playAgain() {
   cancelAnimationFrame(sfAnimId);
 
   // Reset state
-  pts=[]; initH=0; curH=0; pickedIds=[]; totalGain=0; colDone=null;
+  pts=[]; initH=0; curH=0; pickedIds=[]; totalGain=0; colDone=null; pickSnapshot=null;
 
   // Reset entropy UI
   document.getElementById('e-pct').textContent  = '100%';
