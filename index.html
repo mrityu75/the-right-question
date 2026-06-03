@@ -95,9 +95,27 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
   background:linear-gradient(90deg,var(--blue),#818cf8,var(--gold),var(--red));
   transition:width 1s cubic-bezier(.4,0,.2,1)}
 
-.galaxy-wrap{position:relative;width:100%;aspect-ratio:1;
-  max-height:62vw;border-radius:20px;overflow:hidden;
-  background:var(--bg);border:1px solid var(--line);margin:14px 0 10px}
+/* Full-bleed breakout from the 560px column */
+.galaxy-wrap{
+  position:relative;
+  width:100vw;
+  left:50%;
+  transform:translateX(-50%);
+  height:clamp(300px,52vh,520px);
+  /* no aspect-ratio — explicit height for landscape immersion */
+  overflow:hidden;
+  background:var(--bg);
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  margin:14px 0 10px;
+  /* subtle vertical fade so canvas bleeds into page */
+}
+.galaxy-wrap::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:
+    linear-gradient(to bottom, var(--bg) 0%, transparent 8%, transparent 92%, var(--bg) 100%),
+    linear-gradient(to right,  var(--bg) 0%, transparent 4%, transparent 96%, var(--bg) 100%);
+}
 #gcanvas{width:100%;height:100%;display:block}
 
 .g-legend{display:flex;gap:16px;justify-content:center;margin-bottom:6px;flex-wrap:wrap}
@@ -385,7 +403,7 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
 
   <div class="galaxy-wrap">
     <canvas id="gcanvas"></canvas>
-    <canvas id="galaxy-overlay" style="position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;border-radius:inherit"></canvas>
+    <canvas id="galaxy-overlay" style="position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;z-index:1"></canvas>
   </div>
 
   <div class="g-legend">
