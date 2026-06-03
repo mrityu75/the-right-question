@@ -101,7 +101,7 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
   width:100vw;
   left:50%;
   transform:translateX(-50%);
-  height:clamp(300px,52vh,520px);
+  height:clamp(360px,72vh,660px);
   /* no aspect-ratio — explicit height for landscape immersion */
   overflow:hidden;
   background:var(--bg);
@@ -729,14 +729,30 @@ function buildPts() {
       ws+=HARM[v.id]*(x-.5)*v.impact_weight;
     });
     const score = Math.max(0, Math.min(1, .5+ws/W));
-    const a = Math.random()*2*Math.PI;
-    const r = Math.abs(randn())*0.28+0.02;
-    const nx = .5+Math.cos(a)*r+(Math.random()-.5)*0.10;
-    const ny = .5+Math.sin(a)*r*0.68+(Math.random()-.5)*0.09;
+
+    // 3-layer layout so dots fill the ENTIRE canvas — no empty edges
+    let nx, ny;
+    const layer = Math.random();
+    if (layer < 0.52) {
+      // Background field — pure uniform spread, fills every corner
+      nx = 0.02 + Math.random() * 0.96;
+      ny = 0.02 + Math.random() * 0.96;
+    } else if (layer < 0.80) {
+      // Mid-ring — wide annular spread for body-of-galaxy density
+      const a = Math.random()*2*Math.PI;
+      const r = 0.06 + Math.random() * 0.44;   // radius 0.06–0.50 from centre
+      nx = .5 + Math.cos(a)*r + (Math.random()-.5)*0.07;
+      ny = .5 + Math.sin(a)*r + (Math.random()-.5)*0.07;
+    } else {
+      // Core — tight cluster gives a visible galactic-centre brightening
+      nx = .5 + randn()*0.11;
+      ny = .5 + randn()*0.11;
+    }
+
     return {
       vals, score, rgb: scoreRGB(score),
-      x: Math.max(.01,Math.min(.99,nx)),
-      y: Math.max(.01,Math.min(.99,ny)),
+      x: Math.max(.01, Math.min(.99, nx)),
+      y: Math.max(.01, Math.min(.99, ny)),
       vx: (Math.random()-.5)*0.00020,
       vy: (Math.random()-.5)*0.00020,
       r: 1.4+Math.random()*1.5,
