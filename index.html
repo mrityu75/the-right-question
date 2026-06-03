@@ -362,29 +362,61 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
 .btn-ghost:hover{border-color:rgba(255,255,255,.2);color:var(--ink)}
 
 /* ── SCREEN 5: METHODOLOGY ───────────────────────────────── */
+
+/* Break out of 560px column, use full viewport width */
+#s-method{
+  width:100vw;position:relative;left:50%;transform:translateX(-50%);
+  justify-content:flex-start;padding-top:52px;overflow-y:auto}
+
+/* Wider content column */
+.method-content{max-width:1000px;margin:0 auto;padding:0 36px 56px}
+
 .method-header{display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:24px;flex-wrap:wrap;gap:10px}
-.concept-row{display:flex;justify-content:space-between;align-items:flex-start;
-  gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
-.concept-row:last-child{border-bottom:none}
-.cn{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:2px}
-.cd{font-size:12px;color:var(--muted)}
-.ct{flex-shrink:0;font-size:12px;font-weight:500;color:var(--gold);
-  font-family:var(--display);font-style:italic}
-.formula-row{font-family:'Menlo','Courier New',monospace;font-size:12px;
-  color:var(--blue);background:rgba(74,168,255,.07);border:1px solid rgba(74,168,255,.12);
-  border-radius:8px;padding:8px 12px;margin-top:6px;overflow-x:auto;white-space:nowrap}
-.source-row{display:flex;align-items:flex-start;gap:10px;
-  padding:12px 0;border-bottom:1px solid var(--line)}
-.source-row:last-child{border-bottom:none}
-.src-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
-.src-name{font-size:13px;font-weight:500;color:var(--ink)}
-.src-detail{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.45}
-.src-link{font-size:11px;color:var(--blue);text-decoration:none;
-  border-bottom:1px solid rgba(74,168,255,.2);transition:color .18s;margin-top:3px;display:inline-block}
+  margin-bottom:12px;flex-wrap:wrap;gap:10px}
+.method-header h2{font-size:clamp(1.6rem,3.5vw,2.4rem);margin-bottom:0}
+
+/* Larger body text for comfortable reading */
+#s-method .lede{font-size:17px;line-height:1.7;margin-bottom:32px}
+
+/* Section subheadings */
+.method-section-hd{font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--faint);font-weight:600;margin:28px 0 14px}
+
+/* 2-column concept card grid */
+.concept-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+@media(max-width:680px){.concept-grid{grid-template-columns:1fr}}
+
+.concept-card{background:var(--panel);border:1px solid var(--line);border-radius:20px;
+  padding:26px 24px;display:flex;flex-direction:column}
+.concept-card-lbl{font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--faint);font-weight:600;margin-bottom:10px}
+.concept-name{font-family:var(--display);font-size:20px;font-weight:500;
+  color:var(--ink);margin-bottom:10px;line-height:1.25}
+.concept-desc{font-size:15px;line-height:1.68;color:var(--muted);
+  margin-bottom:16px;flex:1}
+.formula-block{font-family:'Menlo','Courier New',monospace;font-size:13px;
+  color:var(--blue);background:rgba(74,168,255,.07);
+  border:1px solid rgba(74,168,255,.15);border-radius:10px;
+  padding:12px 16px;overflow-x:auto;white-space:nowrap;letter-spacing:.02em;
+  line-height:1.55;margin-top:auto}
+
+/* 2-column data sources */
+.sources-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:680px){
+  .sources-grid{grid-template-columns:1fr}
+  .source-full{grid-column:auto!important}}
+.source-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  padding:18px 20px;display:flex;gap:12px;align-items:flex-start}
+.source-full{grid-column:1 / -1}
+.src-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.src-name{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px}
+.src-detail{font-size:13px;color:var(--muted);line-height:1.55;margin-top:2px}
+.src-link{font-size:12px;color:var(--blue);text-decoration:none;
+  border-bottom:1px solid rgba(74,168,255,.2);transition:color .18s;
+  margin-top:5px;display:inline-block}
 .src-link:hover{color:var(--ink)}
-.muted-note{font-size:13px;color:var(--faint);line-height:1.6;margin-top:8px;
-  border-top:1px solid var(--line);padding-top:16px}
+.muted-note{font-size:13px;color:var(--faint);line-height:1.65;
+  margin-top:6px;border-top:1px solid var(--line);padding-top:18px}
 
 /* ── RESPONSIVE ──────────────────────────────────────────── */
 @media(max-width:420px){
@@ -574,81 +606,112 @@ h2{font-family:var(--display);font-weight:500;font-size:28px;line-height:1.15;ma
 ══════════════════════════════════════════════════ -->
 <section class="screen" id="s-method">
   <button class="back" onclick="goBack()">← Back</button>
-  <div class="kicker">Under the hood</div>
-  <div class="method-header">
-    <h2 style="margin-bottom:0">This is CS109.</h2>
-    <button class="btn-ghost" style="width:auto;padding:10px 16px" onclick="playAgain()">↺ Play again</button>
-  </div>
-  <p class="lede" style="margin-bottom:20px">Every screen runs on probability you can name. Here is the map from what you saw to the concept underneath it.</p>
 
-  <div class="card" style="padding:20px 22px;margin-bottom:14px">
-    <div class="card-label">CS109 concepts applied</div>
-    <div class="concept-row">
-      <div><div class="cn">Generating 1,000 future Earths</div><div class="cd">Independent samples from 8 variable distributions</div>
-        <div class="formula-row">x<sub>i</sub><sup>(k)</sup> ~ F<sub>i</sub>(μ<sub>i</sub>, σ<sub>i</sub>), &nbsp;k = 1…1000</div></div>
-      <div class="ct">Monte Carlo</div>
+  <div class="method-content">
+    <div class="kicker">Under the hood</div>
+    <div class="method-header">
+      <h2>This is CS109.</h2>
+      <button class="btn-ghost" style="width:auto;padding:10px 18px" onclick="playAgain()">↺ Play again</button>
     </div>
-    <div class="concept-row">
-      <div><div class="cn">Fitting distribution parameters</div><div class="cd">From real datasets: methane satellite data, Drawdown impact ranges, IPCC AR6 intervals</div>
-        <div class="formula-row">μ̂ = (1/n)Σx<sub>i</sub> &nbsp;·&nbsp; σ̂² = (1/n)Σ(x<sub>i</sub>−μ̂)²</div></div>
-      <div class="ct">MLE</div>
-    </div>
-    <div class="concept-row">
-      <div><div class="cn">Eliminating inconsistent futures</div><div class="cd">Selecting a variable reveals its value; particles outside ±1.2σ are removed</div>
-        <div class="formula-row">S<sub>j</sub> = { x : |x<sub>j</sub> − μ<sub>j</sub>| ≤ 1.2σ<sub>j</sub> }</div></div>
-      <div class="ct">Bayesian</div>
-    </div>
-    <div class="concept-row">
-      <div><div class="cn">Measuring remaining uncertainty</div><div class="cd">Shannon entropy over 10 warming bins from 1.5°C to 4.0°C</div>
-        <div class="formula-row">H = −Σ p<sub>i</sub> log<sub>2</sub>(p<sub>i</sub>)</div></div>
-      <div class="ct">Entropy</div>
-    </div>
-    <div class="concept-row" style="border-bottom:none">
-      <div><div class="cn">Ranking what matters most</div><div class="cd">Information value = impact weight × uncertainty. Tipping points rank 15× above solar.</div>
-        <div class="formula-row">ΔH = H<sub>before</sub> − H<sub>after</sub> &nbsp;·&nbsp; I = 2·w·σ</div></div>
-      <div class="ct">Info gain</div>
-    </div>
-  </div>
+    <p class="lede">Every screen runs on probability you can name. Here is the map from what you saw to the concept underneath it.</p>
 
-  <div class="card" style="padding:20px 22px;margin-bottom:14px">
-    <div class="card-label">Data sources</div>
-    <div class="source-row">
-      <div class="src-dot" style="background:var(--gold)"></div>
-      <div><div class="src-name">Project Drawdown 2026</div>
-        <div class="src-detail">Impact ranges for food waste (1.23–2.47 Gt), diet change (1.40–2.80 Gt), tropical forests (1.67–2.35 Gt), solar (9.20–11.00 Gt).</div>
-        <a class="src-link" href="https://drawdown.org" target="_blank">drawdown.org ↗</a></div>
-    </div>
-    <div class="source-row">
-      <div class="src-dot" style="background:var(--red)"></div>
-      <div><div class="src-name">IPCC AR6 WG1 (2021)</div>
-        <div class="src-detail">Tipping point crossing probability (10–65%). Methane 20-year GWP of 80×CO₂. Scenario envelope 1.5°C–4.0°C.</div>
-        <a class="src-link" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">ipcc.ch/ar6 ↗</a></div>
-    </div>
-    <div class="source-row">
-      <div class="src-dot" style="background:var(--blue)"></div>
-      <div><div class="src-name">Our World in Data — Methane Emissions</div>
-        <div class="src-detail">Country-level series: mean 2,986 Mt CO₂-eq, σ = 246 Mt (8.2% relative uncertainty).</div>
-        <a class="src-link" href="https://ourworldindata.org/methane-emissions" target="_blank">ourworldindata.org ↗</a></div>
-    </div>
-    <div class="source-row">
-      <div class="src-dot" style="background:var(--green)"></div>
-      <div><div class="src-name">Our World in Data — Renewable Energy</div>
-        <div class="src-detail">40-year solar learning curve confirming σ = 0.09 after normalization — the tightest of all variables.</div>
-        <a class="src-link" href="https://ourworldindata.org/renewable-energy" target="_blank">ourworldindata.org ↗</a></div>
-    </div>
-    <div class="source-row" style="border-bottom:none">
-      <div class="src-dot" style="background:#a855f7"></div>
-      <div><div class="src-name">Global Carbon Budget 2025 v0.6</div>
-        <div class="src-detail">Baseline emissions and land-use sector attribution for impact weighting.</div></div>
-    </div>
-  </div>
+    <div class="method-section-hd">CS109 concepts applied</div>
+    <div class="concept-grid">
 
-  <div class="muted-note">
-    Built for CS109 · Stanford · Probability for Computer Scientists. All simulation logic
-    runs client-side in pure JavaScript. No frameworks.
-  </div>
-  <div style="margin-top:20px">
-    <button class="btn primary" onclick="playAgain()">↺ &nbsp; Play again</button>
+      <div class="concept-card">
+        <div class="concept-card-lbl">01 &nbsp;·&nbsp; Monte Carlo</div>
+        <div class="concept-name">Generating 1,000 future Earths</div>
+        <p class="concept-desc">Independent samples drawn from 8 variable distributions. Each particle is one possible timeline — fully independent from the others.</p>
+        <div class="formula-block">x<sub>i</sub><sup>(k)</sup> ~ F<sub>i</sub>(μ<sub>i</sub>, σ<sub>i</sub>), &nbsp;k = 1…1000</div>
+      </div>
+
+      <div class="concept-card">
+        <div class="concept-card-lbl">02 &nbsp;·&nbsp; Distribution Families</div>
+        <div class="concept-name">Normal, Uniform, Bernoulli</div>
+        <p class="concept-desc">Three families capture different uncertainty types. Normal for measurable variables with central tendency. Uniform for genuinely unknown ranges. Bernoulli for binary outcomes like tipping points.</p>
+        <div class="formula-block">Normal(μ,σ²) &nbsp;·&nbsp; Uniform(a,b) &nbsp;·&nbsp; Bernoulli(p)</div>
+      </div>
+
+      <div class="concept-card">
+        <div class="concept-card-lbl">03 &nbsp;·&nbsp; MLE</div>
+        <div class="concept-name">Fitting parameters from real data</div>
+        <p class="concept-desc">Distribution parameters fit to real datasets — methane satellite measurements, Project Drawdown impact ranges, IPCC AR6 confidence intervals. The model only uses numbers that exist.</p>
+        <div class="formula-block">μ̂ = (1/n)Σx<sub>i</sub> &nbsp;·&nbsp; σ̂² = (1/n)Σ(x<sub>i</sub>−μ̂)²</div>
+      </div>
+
+      <div class="concept-card">
+        <div class="concept-card-lbl">04 &nbsp;·&nbsp; Bayesian Conditioning</div>
+        <div class="concept-name">Eliminating inconsistent futures</div>
+        <p class="concept-desc">Selecting a question reveals its value at μ ± 1.2σ. Every particle outside that window is eliminated — the posterior collapses around what you just learned.</p>
+        <div class="formula-block">S<sub>j</sub> = { x : |x<sub>j</sub> − μ<sub>j</sub>| ≤ 1.2σ<sub>j</sub> }</div>
+      </div>
+
+      <div class="concept-card">
+        <div class="concept-card-lbl">05 &nbsp;·&nbsp; Shannon Entropy</div>
+        <div class="concept-name">Measuring remaining uncertainty</div>
+        <p class="concept-desc">How spread out is the warming outcome distribution? Computed over 10 temperature bins from 1.5°C to 4.0°C. More uniform = higher entropy = more uncertainty remaining.</p>
+        <div class="formula-block">H = −Σ p<sub>i</sub> log<sub>2</sub>(p<sub>i</sub>)</div>
+      </div>
+
+      <div class="concept-card">
+        <div class="concept-card-lbl">06 &nbsp;·&nbsp; Information Gain</div>
+        <div class="concept-name">Ranking what matters most</div>
+        <p class="concept-desc">How much does one question reduce uncertainty? Variables ranked by I = 2·w·σ — the product of climate impact weight and distributional spread. Tipping points rank 15× above solar.</p>
+        <div class="formula-block">ΔH = H<sub>before</sub> − H<sub>after</sub> &nbsp;·&nbsp; I = 2·w·σ</div>
+      </div>
+
+    </div>
+
+    <div class="method-section-hd">Data sources</div>
+    <div class="sources-grid">
+      <div class="source-card">
+        <div class="src-dot" style="background:var(--gold);margin-top:4px"></div>
+        <div>
+          <div class="src-name">Project Drawdown 2026</div>
+          <div class="src-detail">Impact ranges: food waste 1.23–2.47 Gt, diet change 1.40–2.80 Gt, tropical forests 1.67–2.35 Gt, solar 9.20–11.00 Gt.</div>
+          <a class="src-link" href="https://drawdown.org" target="_blank">drawdown.org ↗</a>
+        </div>
+      </div>
+      <div class="source-card">
+        <div class="src-dot" style="background:var(--red);margin-top:4px"></div>
+        <div>
+          <div class="src-name">IPCC AR6 WG1 (2021)</div>
+          <div class="src-detail">Tipping point crossing probability (10–65%). Methane 20-year GWP of 80×CO₂. Scenario envelope 1.5°C–4.0°C.</div>
+          <a class="src-link" href="https://www.ipcc.ch/report/ar6/wg1/" target="_blank">ipcc.ch/ar6 ↗</a>
+        </div>
+      </div>
+      <div class="source-card">
+        <div class="src-dot" style="background:var(--blue);margin-top:4px"></div>
+        <div>
+          <div class="src-name">Our World in Data — Methane Emissions</div>
+          <div class="src-detail">Country-level series: mean 2,986 Mt CO₂-eq, σ = 246 Mt (8.2% relative uncertainty).</div>
+          <a class="src-link" href="https://ourworldindata.org/methane-emissions" target="_blank">ourworldindata.org ↗</a>
+        </div>
+      </div>
+      <div class="source-card">
+        <div class="src-dot" style="background:var(--green);margin-top:4px"></div>
+        <div>
+          <div class="src-name">Our World in Data — Renewable Energy</div>
+          <div class="src-detail">40-year solar learning curve confirming σ = 0.09 after normalization — the tightest variable in the model.</div>
+          <a class="src-link" href="https://ourworldindata.org/renewable-energy" target="_blank">ourworldindata.org ↗</a>
+        </div>
+      </div>
+      <div class="source-card source-full">
+        <div class="src-dot" style="background:#a855f7;margin-top:4px"></div>
+        <div>
+          <div class="src-name">Global Carbon Budget 2025 v0.6</div>
+          <div class="src-detail">Baseline emissions and land-use sector attribution used for impact weighting across all 8 variables.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="muted-note">
+      Built for CS109 · Stanford · Probability for Computer Scientists.
+      All simulation logic runs client-side in pure JavaScript. No frameworks.
+    </div>
+    <div style="margin-top:24px">
+      <button class="btn primary" onclick="playAgain()">↺ &nbsp; Play again</button>
+    </div>
   </div>
 </section>
 
